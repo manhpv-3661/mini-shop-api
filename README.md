@@ -63,11 +63,13 @@ Mỗi PR thay entity phải có migration tương ứng. Không bật `synchroni
 - [API contract](./docs/planning/api-contract.md)
 - [Database design](./docs/planning/database.md)
 - [ERD draw.io](./docs/planning/ecommerce.drawio)
-- [Timeline 130 giờ](./docs/planning/timeline-full-scope.csv)
+- [Timeline 130 giờ (full scope)](./docs/planning/timeline-full-scope.csv)
+- [Timeline 80 giờ (yellow scope, đang chạy thật)](./docs/planning/timeline-yellow-80h.csv)
 - [Quy trình giao dự án có khách hàng](./docs/process/real-project-delivery.md)
 - [Release checklist](./docs/process/release-checklist.md)
 - [Risk register](./docs/process/risk-register.csv)
 - [Foundation PR description](./docs/process/foundation-pr-description.md)
+- [Checklist tự review trước PR (rút từ reviewer thật)](./docs/process/pr-self-review-checklist.md) — chạy bằng skill `/pr-self-review`
 
 Các dòng vàng là bắt buộc. Dòng trắng có độ ưu tiên thấp hơn nhưng vẫn nằm trong full scope 130 giờ. Mốc 80 giờ chỉ cam kết scope vàng cùng các yêu cầu chất lượng bắt buộc.
 

@@ -103,25 +103,25 @@ Xem schema, constraints, indexes và transaction rules trong [database.md](./dat
 
 ## Lộ trình PR
 
-| PR kế hoạch | Branch gợi ý              | Nội dung                                              | Bằng chứng review                                   |
-| ----------- | ------------------------- | ----------------------------------------------------- | --------------------------------------------------- |
-| 01          | `docs/full-requirements`  | Đủ 27 chức năng, API contract, assumptions, estimates | Mapping 27/27; mentor trả lời câu hỏi scope         |
-| 02          | `docs/full-erd`           | ERD 14 bảng, constraints, indexes, transactions       | Self-review checklist; mentor review ERD            |
-| 03          | `feat/foundation`         | Init, config, i18n, Swagger, Docker Compose, CI       | App/DB/Redis/Mailpit boot; config fail-fast         |
-| 04          | `feat/schema-seed`        | Entities, migrations, seed CLI                        | DB rỗng run migration; seed hai lần không duplicate |
-| 05          | `feat/mail-queue`         | Notification outbox, Bull/Redis, SMTP, dispatcher     | Redis down không mất intent; retry có giới hạn      |
-| 06          | `feat/auth`               | Register, activation, login/logout, guards            | Unit + e2e auth; PENDING không login                |
-| 07          | `feat/account-recovery`   | Forgot/reset, profile, đổi password                   | Token dùng một lần; token cũ bị revoke              |
-| 08          | `feat/admin-users`        | List/detail/active/inactive user                      | RBAC; deactivated token bị chặn request sau         |
-| 09          | `feat/catalog-files`      | Category/product/public search/featured/file          | Filter/index; rollback upload giữ ảnh cũ            |
-| 10          | `feat/reviews`            | Review/rating một cấp                                 | Verified purchase; unique user/product              |
-| 11          | `feat/cart`               | Get/set/delete cart items                             | Ownership; giới hạn 20 dòng; concurrent update      |
-| 12          | `feat/checkout`           | COD checkout, snapshot, stock locks, idempotency      | Stock=1 concurrent e2e; rollback atomic             |
-| 13          | `feat/orders`             | Customer/admin orders, state machine, emails          | Cancel/confirm race; hoàn tồn đúng một lần          |
-| 14          | `feat/share-suggestions`  | Social links và suggestion workflow                   | Không open redirect; ownership/RBAC/status tests    |
-| 15          | `feat/support-chat`       | Conversation, REST history, WebSocket chat            | Auth handshake; owner/admin room isolation          |
-| 16          | `feat/analytics-report`   | Best-seller, revenue, monthly report mail             | COMPLETED-only queries; timezone/idempotency tests  |
-| 17          | `chore/release-hardening` | Full e2e, query plans, debug fixes, docs, demo        | Clean-clone rehearsal; CI xanh; known limitations   |
+| PR kế hoạch | Branch (theo scheme `feature/pull-<n>-<slug>` của CONTRIBUTING.md) | Nội dung                                              | Bằng chứng review                                   |
+| ----------- | ------------------------------------------------------------------ | ----------------------------------------------------- | --------------------------------------------------- |
+| 01          | `feature/pull-1-full-requirements`                                 | Đủ 27 chức năng, API contract, assumptions, estimates | Mapping 27/27; mentor trả lời câu hỏi scope         |
+| 02          | `feature/pull-2-full-erd`                                          | ERD 14 bảng, constraints, indexes, transactions       | Self-review checklist; mentor review ERD            |
+| 03          | `feature/pull-3-foundation`                                        | Init, config, i18n, Swagger, Docker Compose, CI       | App/DB/Redis/Mailpit boot; config fail-fast         |
+| 04          | `feature/pull-4-schema-seed`                                       | Entities, migrations, seed CLI                        | DB rỗng run migration; seed hai lần không duplicate |
+| 05          | `feature/pull-5-mail-queue`                                        | Notification outbox, Bull/Redis, SMTP, dispatcher     | Redis down không mất intent; retry có giới hạn      |
+| 06          | `feature/pull-6-auth`                                              | Register, activation, login/logout, guards            | Unit + e2e auth; PENDING không login                |
+| 07          | `feature/pull-7-account-recovery`                                  | Forgot/reset, profile, đổi password                   | Token dùng một lần; token cũ bị revoke              |
+| 08          | `feature/pull-8-admin-users`                                       | List/detail/active/inactive user                      | RBAC; deactivated token bị chặn request sau         |
+| 09          | `feature/pull-9-catalog-files`                                     | Category/product/public search/featured/file          | Filter/index; rollback upload giữ ảnh cũ            |
+| 10          | `feature/pull-10-reviews`                                          | Review/rating một cấp                                 | Verified purchase; unique user/product              |
+| 11          | `feature/pull-11-cart`                                             | Get/set/delete cart items                             | Ownership; giới hạn 20 dòng; concurrent update      |
+| 12          | `feature/pull-12-checkout`                                         | COD checkout, snapshot, stock locks, idempotency      | Stock=1 concurrent e2e; rollback atomic             |
+| 13          | `feature/pull-13-orders`                                           | Customer/admin orders, state machine, emails          | Cancel/confirm race; hoàn tồn đúng một lần          |
+| 14          | `feature/pull-14-share-suggestions`                                | Social links và suggestion workflow                   | Không open redirect; ownership/RBAC/status tests    |
+| 15          | `feature/pull-15-support-chat`                                     | Conversation, REST history, WebSocket chat            | Auth handshake; owner/admin room isolation          |
+| 16          | `feature/pull-16-analytics-report`                                 | Best-seller, revenue, monthly report mail             | COMPLETED-only queries; timezone/idempotency tests  |
+| 17          | `feature/pull-17-release-hardening`                                | Full e2e, query plans, debug fixes, docs, demo        | Clean-clone rehearsal; CI xanh; known limitations   |
 
 Không cần chờ một PR lớn mới review. Mỗi PR chứa migration đi cùng entity/feature của nó; Swagger và test được cập nhật trong cùng PR sở hữu behavior.
 

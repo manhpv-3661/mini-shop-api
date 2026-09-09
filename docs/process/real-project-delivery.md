@@ -141,8 +141,8 @@ Project nhỏ dùng protected `main` và branch ngắn hạn:
 
 ```text
 main
- ├─ feature/REQ-ID-short-name
- ├─ fix/BUG-ID-short-name
+ ├─ feature/pull-<n>-short-name   # ví dụ feature/pull-4-schema-seed — theo CONTRIBUTING.md
+ ├─ fix/pull-<n>-bugfix-name
  └─ chore/tooling-name
 ```
 

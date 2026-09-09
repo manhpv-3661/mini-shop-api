@@ -146,7 +146,7 @@ erDiagram
         text customer_note
         text rejection_reason
         uuid idempotency_key
-        varchar request_hash
+        char request_hash
         timestamptz completed_at
         timestamptz created_at
         timestamptz updated_at
@@ -322,7 +322,7 @@ UNIQUE (`user_id`, `product_id`). Trước insert, service dùng `EXISTS` để 
 | `customer_note`         | `text NULL`        | Tối đa 500 ký tự                                                          |
 | `rejection_reason`      | `text NULL`        | Tối đa 500 ký tự; bắt buộc không trắng khi REJECTED                       |
 | `idempotency_key`       | `uuid`             | Key do client gửi header; UNIQUE cùng `user_id`                           |
-| `request_hash`          | `varchar(64)`      | SHA-256 của request đã canonicalize; CHECK 64 hex characters              |
+| `request_hash`          | `char(64)`         | SHA-256 của request đã canonicalize; CHECK 64 hex characters              |
 | `completed_at`          | `timestamptz NULL` | Có giá trị khi và chỉ khi status COMPLETED                                |
 
 Các CHECK cùng dòng nên có: `(status = 'COMPLETED') = (completed_at IS NOT NULL)`; REJECTED yêu cầu `rejection_reason IS NOT NULL AND btrim(rejection_reason) <> ''`, các trạng thái khác giữ lý do này NULL. `COD` chưa có nghĩa đã thu tiền; chuyển COMPLETED có nghĩa giao xong và đã thu COD. Không cần bảng payment vì chưa có giao dịch cổng thanh toán hay hoàn tiền.

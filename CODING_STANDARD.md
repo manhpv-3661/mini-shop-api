@@ -1,6 +1,6 @@
 # Coding Standard
 
-Quy chuẩn code cho dự án NestJS tutorial. Đúc kết từ các review comment của mentor trên PR#3.
+Quy chuẩn code cho **Mini Shop API** (dự án Ecommerce). Các RULE trong tài liệu này đúc kết từ review comment thật của mentor trên PR của dự án tham khảo `nestjs-tutorial` (một RealWorld-clone dùng domain Articles/Follows/Favorites/Comments/Profiles) mà Mini Shop được khởi tạo dựa theo (xem [README.md](./README.md)) — các nguyên tắc (module boundary, transaction, N+1, response envelope, bootstrap, TS strict...) áp dụng nguyên vẹn cho Mini Shop, nhưng phần lớn **code minh hoạ, tên file cụ thể và số liệu đo (query count, coverage %) trong các mục 3–9 và 14–21 vẫn là ví dụ lấy từ `nestjs-tutorial`**, không phải code đã tồn tại trong repo `mini-shop-api` này. Domain đó (Articles/Follows/Favorites/Comments/Profiles) **không** được mang sang Mini Shop. Khi triển khai entity/module thật của Mini Shop (`users`, `auth`, `categories`, `products`, `cart`, `orders`, `reviews`, `chat`, `product_suggestions`, `email_notifications`) theo [database.md](./docs/planning/database.md), áp dụng đúng RULE nhưng thay ví dụ/tên file bằng module Mini Shop tương ứng — không copy nguyên code minh hoạ.
 
 ---
 
@@ -8,16 +8,19 @@ Quy chuẩn code cho dự án NestJS tutorial. Đúc kết từ các review comm
 
 Mỗi module chỉ chịu trách nhiệm cho **một domain**. Không gộp nhiều nghiệp vụ khác nhau vào chung một module.
 
-| Module        | Trách nhiệm                                                     | KHÔNG chứa                                                           |
-| ------------- | --------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `users`       | CRUD thông tin user, cập nhật avatar                            | Logic follow/unfollow, logic public profile                          |
-| `follows`     | Quan hệ follow/unfollow giữa 2 user                             | Thông tin user, response DTO cho profile                             |
-| `profiles`    | Ghép user + follow-status để trả về public profile              | Truy vấn DB trực tiếp (phải gọi qua `UsersService`/`FollowsService`) |
-| `attachments` | Lưu trữ & phục vụ file upload (avatar, ...)                     | Business logic của module sở hữu file (user, post, ...)              |
-| `auth`        | Đăng ký, đăng nhập, JWT, blacklist token                        | Thông tin profile user                                               |
-| `articles`    | CRUD article, slug, tagList, feed, ghép author + favorite state | Quan hệ favorite thô (phải gọi qua `FavoritesService`)               |
-| `favorites`   | Quan hệ favorite/unfavorite giữa 1 user và 1 article            | Thông tin article, response DTO                                      |
-| `comments`    | CRUD comment trên 1 article, ghép author + follow state         | Truy vấn article trực tiếp (phải gọi qua `ArticlesService`)          |
+| Module                | Trách nhiệm                                                                    | KHÔNG chứa                                                                    |
+| --------------------- | ------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `users`               | Hồ sơ user, đổi mật khẩu, admin active/inactive                                | Logic đăng nhập/JWT (thuộc `auth`)                                            |
+| `auth`                | Đăng ký, activation, login/logout, forgot/reset password, JWT, blacklist token | Thông tin hồ sơ user (phải gọi qua `UsersService`)                            |
+| `attachments`         | Lưu trữ & phục vụ file upload (ảnh sản phẩm)                                   | Business logic của module sở hữu file (`products`)                            |
+| `categories`          | CRUD danh mục sản phẩm                                                         | Truy vấn/sửa product trực tiếp (phải gọi qua `ProductsService`)               |
+| `products`            | CRUD sản phẩm, tồn kho, ảnh, ghép category + featured                          | Quan hệ giỏ hàng/đơn hàng thô (phải gọi qua `CartService`/`OrdersService`)    |
+| `cart`                | Thêm/sửa/xóa dòng trong giỏ của 1 user                                         | Giá/tồn hiện tại của product (phải gọi qua `ProductsService`)                 |
+| `orders`              | Checkout, lịch sử/chi tiết đơn, state machine, order_status_history            | Truy vấn product trực tiếp (phải gọi qua `ProductsService`/`CartService`)     |
+| `reviews`             | CRUD review/rating 1 cấp cho sản phẩm đã mua                                   | Truy vấn order trực tiếp (chỉ dùng `EXISTS` qua service order khi tạo review) |
+| `chat`                | Conversation + message support giữa customer và admin                          | Thông tin user (phải gọi qua `UsersService`)                                  |
+| `product-suggestions` | Workflow gợi ý sản phẩm PENDING→APPROVED/REJECTED                              | Tạo product tự động (approve không auto-create product)                       |
+| `notifications`       | Outbox `email_notifications`, dispatcher/worker Bull, monthly report           | Business logic của module phát sinh sự kiện (auth/orders/...)                 |
 
 **Vì sao:** gộp chung khiến module phình to, khó test độc lập, và một thay đổi ở follow có thể vô tình ảnh hưởng user. Tách riêng giúp mỗi module có thể export đúng những gì module khác cần qua `exports` của `@Module`.
 
@@ -70,32 +73,36 @@ src/modules/{feature}/
 └── interfaces/                # Type/interface dùng chung trong module
 ```
 
-Ví dụ thực tế trong repo:
+Ví dụ áp dụng cho domain Mini Shop (chưa có trong repo — minh hoạ cách đặt file khi triển khai PR04 `feat/schema-seed` trở đi, theo đúng 14 bảng ở [database.md](./docs/planning/database.md)):
 
 ```
-src/modules/users/
-├── users.controller.ts
-├── users.service.ts
-├── users.service.spec.ts
-├── users.module.ts
-├── entities/user.entity.ts
-├── dto/update-user.dto.ts
-├── dto/user-response.dto.ts
-├── constants/users.constants.ts
-├── interceptors/avatar-upload.interceptor.ts
-└── interfaces/avatar-file.interface.ts
+src/modules/products/
+├── products.controller.ts       # public + admin, tách 2 method rõ tên nếu cần; xem mục 2.2 khi nào tách controllers/
+├── products.service.ts
+├── products.service.spec.ts
+├── products.module.ts
+├── entities/product.entity.ts
+├── dto/create-product.dto.ts
+├── dto/product-response.dto.ts
+├── constants/products.constants.ts
+└── interceptors/product-image-upload.interceptor.ts
 
-src/modules/follows/
-├── follows.service.ts
-├── follows.service.spec.ts
-├── follows.module.ts
-└── entities/follow.entity.ts
+src/modules/cart/
+├── cart.controller.ts
+├── cart.service.ts
+├── cart.service.spec.ts
+├── cart.module.ts
+└── entities/cart-item.entity.ts
 
-src/modules/profiles/
-├── profiles.controller.ts
-├── profiles.service.ts
-├── profiles.module.ts
-└── dto/profile-response.dto.ts
+src/modules/orders/
+├── orders.controller.ts
+├── orders.service.ts
+├── orders.service.spec.ts
+├── orders.module.ts
+├── entities/order.entity.ts
+├── entities/order-item.entity.ts
+├── entities/order-status-history.entity.ts
+└── dto/order-response.dto.ts
 ```
 
 **Vì sao:** bọc `controllers/`/`services/` quanh đúng 1 file/module không thêm giá trị tra cứu — tên file `.controller.ts`/`.service.ts` đã tự nói vai trò, còn thêm 1 cấp thư mục chỉ làm sâu path không cần thiết. Ngược lại, `dto/`, `entities/`... thực sự có nhiều file nên tách riêng mới giúp tìm nhanh.
@@ -395,19 +402,22 @@ throw new ConflictException(this.i18n.t('errors.usernameAlreadyTaken'));
 
 ```
 auth ──depends on──▶ users
-profiles ──depends on──▶ users, follows
 users ──depends on──▶ attachments
-follows ──depends on──▶ users (chỉ entity, qua TypeORM relation)
-articles ──depends on──▶ users, follows, favorites
-favorites ──depends on──▶ users, articles (chỉ entity, qua TypeORM relation)
-comments ──depends on──▶ articles, follows
+categories ──depends on──▶ (module lá, không phụ thuộc module nghiệp vụ khác)
+products ──depends on──▶ categories, attachments
+cart ──depends on──▶ products (chỉ entity, qua TypeORM relation)
+orders ──depends on──▶ users, cart, products
+reviews ──depends on──▶ users, products, orders (chỉ EXISTS query, không import OrdersModule)
+chat ──depends on──▶ users
+product-suggestions ──depends on──▶ users
+notifications ──depends on──▶ users, orders, auth (chỉ entity, qua TypeORM relation)
 attachments ◀── không phụ thuộc module nghiệp vụ nào khác (module lá)
 
 redis (@Global) ──▶ không import module nghiệp vụ nào; được inject ở bất kỳ đâu, không cần import RedisModule
 common/, config/ ◀── tầng thấp nhất: KHÔNG được import giá trị từ modules/
 ```
 
-**Lưu ý về cặp `articles`/`favorites`:** giống `profiles`/`follows`, đây là 2 module phụ thuộc lẫn nhau ở 2 mức khác nhau nên KHÔNG phải import vòng: `FavoritesModule.imports` không có `ArticlesModule` — `favorite.entity.ts` chỉ import class `Article` để khai `@ManyToOne` (entity-level, không phải module-level). Chiều import module thật sự chỉ có một chiều: `ArticlesModule.imports` → `FavoritesModule` (để gọi `FavoritesService`).
+**Lưu ý về `reviews`/`orders`:** review chỉ được tạo khi customer có order COMPLETED chứa product (mục 3 của [database.md](./docs/planning/database.md)) — đây là rule xuyên bảng, kiểm tra bằng `EXISTS` trong query builder của `ReviewsService`, KHÔNG import `OrdersModule` để gọi `OrdersService`. Cùng nguyên tắc với cặp `articles`/`favorites` ở dự án tham khảo: phụ thuộc dữ liệu (entity-level, qua FK) khác với phụ thuộc module (qua `imports`/`exports` của `@Module`) — chỉ loại thứ hai mới tính là import vòng nếu đi ngược chiều.
 
 **Rule cụ thể:**
 
@@ -442,11 +452,11 @@ common/, config/ ◀── tầng thấp nhất: KHÔNG được import giá tr�
 - Bắt buộc thêm e2e cho một flow khi thoả **một trong hai** điều kiện: (1) flow đi xuyên ≥2 module (vd: register ở `auth` → dùng ở `users`/`profiles`), hoặc (2) flow phụ thuộc hành vi DB thật mà unit test mock `Repository` không kiểm chứng được (unique constraint, transaction rollback).
 - Dùng DB/Redis thật qua docker-compose (`test/utils/create-test-app.ts` boot cả `AppModule`), không mock — mục đích của e2e là xác nhận toàn bộ pipeline (guard, pipe, filter, DB constraint) hoạt động đúng với nhau, khác với unit test.
 - Dùng chung `createTestApp()` và `registerUser()` trong `test/utils/` cho mọi file e2e, không copy lại logic bootstrap/tạo user ở từng file (xem mục 5 — extract cấu hình lặp lại).
-- Hiện có: `test/auth.e2e-spec.ts` (register/login/logout/blacklist), `test/users.e2e-spec.ts` (update profile, avatar upload + mime validation), `test/follow.e2e-spec.ts` (follow/unfollow xuyên `profiles`+`follows`+`users`), `test/articles.e2e-spec.ts` (CRUD + tag/author/favorited filter + feed + favorite/unfavorite), `test/comments.e2e-spec.ts` (add/list/delete comment xuyên `comments`+`articles`+`follows`, author-only delete).
+- Hiện có trong repo này: chỉ `test/app.e2e-spec.ts` (health check của foundation). Chưa có e2e nghiệp vụ nào vì chưa có module nghiệp vụ nào được viết (xem README — foundation-only). Khi thêm module theo lộ trình PR ([full-scope-plan.md](./docs/planning/full-scope-plan.md)), thêm e2e tương ứng (vd `test/auth.e2e-spec.ts` ở PR06, `test/checkout.e2e-spec.ts` ở PR12...) và cập nhật lại danh sách này — không để mục này lạc hậu so với `test/` thật.
 
 **E2E dùng database riêng, tự seed/truncate mỗi test case:**
 
-- `.env.test` (khai commit trong repo, khác `.env` chỉ ở `DB_NAME=nestjs_tutorial_test`) — e2e **không bao giờ** chạy trên DB dev. Trước PR6, e2e chạy chung `.env`/DB dev nên mỗi lần chạy tích luỹ rác (697 user/102 article rác từng thấy trong DB dev khi audit lại) — tách DB riêng để triệt để.
+- `.env.test` (khai commit trong repo, khác `.env` chỉ ở `DB_NAME=mini_shop_test`) — e2e **không bao giờ** chạy trên DB dev. Trước PR6, e2e chạy chung `.env`/DB dev nên mỗi lần chạy tích luỹ rác (697 user/102 article rác từng thấy trong DB dev khi audit lại) — tách DB riêng để triệt để.
 - `test/utils/setup-env.ts` nạp `.env.test` qua `dotenv.config()` ở `setupFiles` (chạy **trước** khi `AppModule`/`ConfigModule.forRoot()` được import) — dotenv mặc định không override biến đã có sẵn trong `process.env`, nên trên CI (đã set `DB_NAME` thật ở job `env:`) file `.env.test` bị bỏ qua tự nhiên, không cần sửa `ci.yml`.
 - `test/utils/db-reset.ts` (`truncateAllTables`) + `test/utils/seed-database.ts` (`seedDatabase`, 2 user cố định `seed_alice`/`seed_bob`) được gắn vào `beforeEach`/`afterEach` **toàn cục** qua `test/utils/reset-database.setup.ts` (khai ở `setupFilesAfterEnv`) — mọi file `*.e2e-spec.ts` tự động seed trước và truncate sau **mỗi** test case, không cần từng file tự gọi. `createTestApp()` lưu `DataSource` của app đang chạy vào biến module-scope (`getActiveDataSource()`) để hook toàn cục lấy được đúng connection.
 - **Bắt buộc `--runInBand`** (`npm run test:e2e`) vì truncate là thao tác toàn DB — nếu Jest chạy nhiều file e2e song song (nhiều worker) trên cùng 1 DB test, file này truncate sẽ xoá luôn dữ liệu file kia đang test giữa chừng, gây flaky. Chạy tuần tự loại bỏ hoàn toàn rủi ro này.
@@ -855,7 +865,7 @@ async favorite(
 
 **Rule:** `package.json`'s `jest.coverageThreshold.global` đặt sàn tối thiểu cho `npm run test:cov` (statements 70 / branches 65 / functions 60 / lines 70). `ci.yml` chạy `npm run test:cov` (không phải `npm test` trơn) nên ngưỡng này **thật sự chặn CI**, không chỉ là con số tham khảo.
 
-**Vì sao:** con số này lấy từ coverage đo thật của repo tại thời điểm thêm rule (statements 74.1% / branches 71.04% / functions 66.24% / lines 74.88%), hạ xuống một khoảng an toàn để làm **sàn chống tụt**, không phải mục tiêu để cố đạt. Coverage tổng thấp hơn 100% là **có chủ đích** theo mục 11 ("không viết test cho code chỉ gọi lại thư viện") — file `*.module.ts` (chỉ khai DI wiring), entity (chỉ field + decorator, không logic), `redis.service.ts` (wrapper mỏng qua `ioredis`) đều gần như không có gì để test nên kéo % tổng xuống một cách hợp lý. Threshold ở đây tồn tại để bắt **tụt coverage bất ngờ** (thêm logic mới có nhánh lỗi mà quên viết test), không phải để ép coverage cao giả tạo bằng cách test lại thư viện.
+**Vì sao:** con số này lấy từ coverage đo thật của repo tại thời điểm thêm rule (statements 74.1% / branches 71.04% / functions 66.24% / lines 74.88%), hạ xuống một khoảng an toàn để làm **sàn chống tụt**, không phải mục tiêu để cố đạt. Coverage tổng thấp hơn 100% là **có chủ đích** theo mục 11 ("không viết test cho code chỉ gọi lại thư viện") — file `*.module.ts` (chỉ khai DI wiring), entity (chỉ field + decorator, không logic — `collectCoverageFrom` đã thêm `!**/*.entity.ts` từ PR04 cùng lý do với `.module.ts`/`.dto.ts`/`.constants.ts`), `redis.service.ts` (wrapper mỏng qua `ioredis`) đều gần như không có gì để test nên kéo % tổng xuống một cách hợp lý. Threshold ở đây tồn tại để bắt **tụt coverage bất ngờ** (thêm logic mới có nhánh lỗi mà quên viết test), không phải để ép coverage cao giả tạo bằng cách test lại thư viện.
 
 **Áp dụng:** nếu thêm code có nhiều logic mới (branch/condition thật) mà không kèm test, `npm run test:cov` sẽ fail cục bộ trước khi push. Không hạ threshold để né lỗi này — thêm test cho nhánh còn thiếu. Chỉ hạ threshold khi có lý do kiến trúc thật (vd thêm hẳn 1 module chỉ toàn DI wiring không có logic) và phải ghi lại lý do ngay tại chỗ sửa, tương tự mục 14.
 
