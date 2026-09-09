@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mini_shop
+          POSTGRES_PASSWORD: mini_shop
+          POSTGRES_DB: mini_shop_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      PORT: 3002
+      API_PREFIX: api/v1
+      PUBLIC_WEB_URL: http://localhost:3002
+      APP_TIMEZONE: Asia/Bangkok
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: mini_shop
+      DB_PASSWORD: mini_shop
+      DB_NAME: mini_shop_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_SECRET: ci-test-secret-at-least-32-characters
+      JWT_EXPIRES_IN: 86400
+      MAIL_HOST: localhost
+      MAIL_PORT: 1025
+      MAIL_FROM: no-reply-test@mini-shop.example.com
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm run format:check
+      - run: npm run migration:run
+      - run: npm run test:cov
+      - run: npm run test:e2e
+      - run: npm run build

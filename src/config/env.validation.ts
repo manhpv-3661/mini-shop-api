@@ -1,0 +1,27 @@
+import * as Joi from 'joi';
+
+export const envValidationSchema = Joi.object({
+  NODE_ENV: Joi.string()
+    .valid('development', 'production', 'test')
+    .default('development'),
+  PORT: Joi.number().port().default(3001),
+  API_PREFIX: Joi.string().default('api/v1'),
+  PUBLIC_WEB_URL: Joi.string().uri().required(),
+  APP_TIMEZONE: Joi.string().default('Asia/Bangkok'),
+
+  DB_HOST: Joi.string().required(),
+  DB_PORT: Joi.number().port().required(),
+  DB_USERNAME: Joi.string().required(),
+  DB_PASSWORD: Joi.string().required(),
+  DB_NAME: Joi.string().required(),
+
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PORT: Joi.number().port().required(),
+
+  JWT_SECRET: Joi.string().min(32).required(),
+  JWT_EXPIRES_IN: Joi.number().integer().positive().default(86400),
+
+  MAIL_HOST: Joi.string().required(),
+  MAIL_PORT: Joi.number().port().required(),
+  MAIL_FROM: Joi.string().email().required(),
+});
