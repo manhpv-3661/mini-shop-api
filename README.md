@@ -67,6 +67,7 @@ Mỗi PR thay entity phải có migration tương ứng. Không bật `synchroni
 - [Quy trình giao dự án có khách hàng](./docs/process/real-project-delivery.md)
 - [Release checklist](./docs/process/release-checklist.md)
 - [Risk register](./docs/process/risk-register.csv)
+- [Foundation PR description](./docs/process/foundation-pr-description.md)
 
 Các dòng vàng là bắt buộc. Dòng trắng có độ ưu tiên thấp hơn nhưng vẫn nằm trong full scope 130 giờ. Mốc 80 giờ chỉ cam kết scope vàng cùng các yêu cầu chất lượng bắt buộc.
 
