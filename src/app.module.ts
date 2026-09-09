@@ -14,6 +14,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { envValidationSchema } from './config/env.validation';
 import { typeormConfig } from './config/typeorm.config';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CartModule } from './modules/cart/cart.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ProductSuggestionsModule } from './modules/product-suggestions/product-suggestions.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { UsersModule } from './modules/users/users.module';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -49,6 +60,17 @@ import { RedisModule } from './redis/redis.module';
     }),
     ScheduleModule.forRoot(),
     RedisModule,
+    UsersModule,
+    AuthModule,
+    AttachmentsModule,
+    CategoriesModule,
+    ProductsModule,
+    CartModule,
+    OrdersModule,
+    ReviewsModule,
+    NotificationsModule,
+    ChatModule,
+    ProductSuggestionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

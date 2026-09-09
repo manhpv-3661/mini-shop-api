@@ -1,0 +1,1 @@
+export const MAX_EMAIL_NOTIFICATION_ATTEMPTS = 3;
