@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "dev: infrastructure",
+      "type": "shell",
+      "command": "docker compose up -d --wait",
+      "problemMatcher": []
+    },
+    {
+      "label": "dev: api",
+      "type": "npm",
+      "script": "start:dev",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "verify: pull request",
+      "type": "shell",
+      "command": "npm run lint:check && npm run format:check && npm run test:cov && npm run test:e2e && npm run build",
+      "problemMatcher": []
+    }
+  ]
+}

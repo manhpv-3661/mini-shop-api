@@ -5,6 +5,7 @@
 - Tạo branch từ `main`: `feature/pull-<n>-<slug>`, ví dụ `feature/pull-3-foundation`.
 - Dùng Conventional Commits: `<type>: <description>` với `feat`, `fix`, `ci`, `docs`, `chore`, `test`, `refactor`.
 - Không commit feature trực tiếp vào `main`.
+- Chỉ tạo branch feature mới từ `main` sau khi PR nền mà feature phụ thuộc đã merge. Nếu làm stacked PR, ghi rõ base branch và rebase về `main` sau khi dependency merge.
 
 ## Trước khi gửi PR
 
@@ -15,3 +16,5 @@
 5. Nếu đổi entity, kiểm tra migration trên database mới và database test; chạy seed hai lần nếu PR có seed.
 6. Cập nhật Swagger, tài liệu và test trong cùng PR sở hữu behavior.
 7. Gửi mentor/teammate review và chỉ merge khi có approval.
+
+Dùng [.github/PULL_REQUEST_TEMPLATE.md](./.github/PULL_REQUEST_TEMPLATE.md) cho mọi PR. `main` trên remote phải bật branch protection: required CI, ít nhất một approval, dismiss stale approvals và chặn force-push/delete.
