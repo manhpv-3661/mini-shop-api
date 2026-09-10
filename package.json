@@ -29,7 +29,8 @@
     "migration:run:test": "typeorm-ts-node-commonjs migration:run -d ./data-source.test.ts",
     "migration:revert:test": "typeorm-ts-node-commonjs migration:revert -d ./data-source.test.ts",
     "schema:drop:test": "typeorm-ts-node-commonjs schema:drop -d ./data-source.test.ts",
-    "migration:reset:test": "npm run schema:drop:test && npm run migration:run:test"
+    "migration:reset:test": "npm run schema:drop:test && npm run migration:run:test",
+    "seed": "ts-node src/database/seeds/seed.ts"
   },
   "dependencies": {
     "@nestjs/bull": "11.0.5",
@@ -48,6 +49,7 @@
     "bull": "^4.16.5",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
+    "commander": "15.0.0",
     "dotenv": "^17.4.2",
     "ioredis": "^5.11.1",
     "joi": "^18.2.5",
@@ -114,7 +116,11 @@
       "!main.ts",
       "!config/**",
       "!**/*.dto.ts",
-      "!**/*.constants.ts"
+      "!**/*.constants.ts",
+      "!**/*.entity.ts",
+      "!**/*.enum.ts",
+      "!database/migrations/**",
+      "!database/seeds/seed.ts"
     ],
     "coverageDirectory": "../coverage",
     "coverageThreshold": {

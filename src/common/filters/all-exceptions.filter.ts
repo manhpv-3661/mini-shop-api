@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { I18nValidationException } from 'nestjs-i18n';
 
 @Catch()
@@ -14,10 +14,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
   catch(exception: unknown, host: ArgumentsHost): void {
-    const response = host.switchToHttp().getResponse<Response>();
+    const httpContext = host.switchToHttp();
+    const response = httpContext.getResponse<Response>();
+    const requestId = httpContext.getRequest<Request & { id?: string }>().id;
 
     if (!(exception instanceof HttpException)) {
-      this.logger.error('Unhandled exception', exception);
+      // requestId đi kèm log để trace lỗi 500 xuyên các service khác (Definition of Done —
+      // full-scope-plan.md); KHÔNG đưa vào response body vì đó là chi tiết nội bộ, không phải
+      // hợp đồng API với client.
+      this.logger.error(
+        `Unhandled exception [requestId=${requestId}]`,
+        exception,
+      );
       response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         errors: { body: ['Internal server error'] },
       });
