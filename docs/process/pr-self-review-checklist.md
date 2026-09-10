@@ -45,6 +45,7 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 - [ ] 🔴 Tạo entity qua transaction manager dùng `manager.create(Entity, {...})` rồi mới `insert()`/`save()`, không insert object literal thô.
 - [ ] 🔴 Thao tác ghi nhiều bước (update token, ghi file rồi update DB...) đã bọc transaction đúng cách truyền `manager` xuyên suốt (CODING_STANDARD mục 6); đã cân nhắc race condition khi nhiều request đồng thời.
 - [ ] 🔴 Nếu ghi file ra ngoài DB (avatar, ảnh sản phẩm) trước khi transaction DB chạy — đã xử lý dọn file mồ côi khi transaction lỗi (CODING_STANDARD mục 6, "Lưu ý theo mentor").
+- [ ] Thao tác "đọc rồi ghi lại" trên 1 row có thể bị nhiều request chạm cùng lúc (trừ tồn kho, đổi trạng thái đơn, mở conversation) dùng atomic UPDATE có điều kiện hoặc `pessimistic_write` lock, không chỉ bọc transaction rồi coi là đủ — **không có trong 4 PR đã phân tích vì chưa PR nào tới checkout/concurrency, nhưng là rủi ro đúng nhất cho PR12 sắp tới** (CODING_STANDARD mục 22).
 
 ### Code Structure
 
@@ -54,6 +55,14 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 - [ ] 🔴 Controller không chứa business logic, chỉ gọi service (CODING_STANDARD mục 3).
 - [ ] 🔴 **Access modifier (`private`/`public`) đã rà soát nhất quán** — method chỉ dùng nội bộ class phải `private`; áp dụng đồng bộ cho các hàm cùng vai trò trong file.
 - [ ] Tên hàm/biến rõ nghĩa nghiệp vụ; method repository theo đúng convention CRUD (CODING_STANDARD mục 12).
+- [ ] Enum/type mới không mặc định đặt trong entity/service của module sở hữu dữ liệu — đã tự hỏi module khác không liên quan trực tiếp có cần dùng giá trị này ở runtime không (vd `UserRole` cho RBAC ở mọi module); nếu có, đặt ở `common/enums/` (CODING_STANDARD mục 10).
+
+### Kiến trúc dự án (khoảng trống tự phát hiện khi build schema — chưa nằm trong 4 PR đã phân tích)
+
+- [ ] Logic Idempotency-Key (checkout, chat) tái sử dụng helper hash/canonicalize dùng chung ở `common/utils/`, không viết lại từng module (CODING_STANDARD mục 23).
+- [ ] Handler WebSocket gateway không tự query DB/xử lý nghiệp vụ — chỉ gọi service, cùng nguyên tắc controller mỏng (CODING_STANDARD mục 24).
+- [ ] Handler `@Cron()` mới tự chống chạy chồng lấn và có giới hạn batch tường minh (CODING_STANDARD mục 25).
+- [ ] Field tiền (VND) validate cận trên `string` trước khi ép `Number` để tính, không dùng `parseFloat` trực tiếp lên input chưa kiểm (CODING_STANDARD mục 26).
 
 ### Bảo mật 🟡 (chưa từng bị nhắc trong 4 PR — khoảng trống thật, không phải đã kiểm và pass)
 

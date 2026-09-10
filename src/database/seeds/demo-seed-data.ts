@@ -1,14 +1,11 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DataSource, Repository } from 'typeorm';
+import { UserRole } from '../../common/enums/user-role.enum';
 import { Category } from '../../modules/categories/entities/category.entity';
 import { Product } from '../../modules/products/entities/product.entity';
 import { SALT_ROUNDS } from '../../modules/users/constants/users.constants';
-import {
-  User,
-  UserRole,
-  UserStatus,
-} from '../../modules/users/entities/user.entity';
+import { User, UserStatus } from '../../modules/users/entities/user.entity';
 import type {
   CategorySeed,
   ProductSeed,

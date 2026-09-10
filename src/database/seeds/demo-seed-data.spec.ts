@@ -1,6 +1,6 @@
 import * as bcrypt from 'bcrypt';
 import { DataSource } from 'typeorm';
-import { UserRole } from '../../modules/users/entities/user.entity';
+import { UserRole } from '../../common/enums/user-role.enum';
 import { seedDemoData } from './demo-seed-data';
 
 jest.mock('bcrypt');

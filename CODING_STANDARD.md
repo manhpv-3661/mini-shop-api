@@ -39,10 +39,14 @@ src/
 ├── common/                 # Dùng chung, KHÔNG thuộc domain nào
 │   ├── bootstrap/          # configure-app.ts — pipe/interceptor/filter toàn cục, dùng chung cho main.ts và e2e
 │   ├── decorators/         # Param decorator dùng chung (vd: @CurrentUser)
+│   ├── entities/           # Base entity dùng chung (vd UuidBaseEntity — sinh UUID tại app)
+│   ├── enums/              # Enum cross-cutting nhiều module cùng cần ở runtime (vd UserRole — mục 10)
 │   ├── filters/            # Exception filter toàn cục (all-exceptions.filter.ts)
 │   └── utils/              # Helper thuần, không state — hậu tố `.util.ts`
 ├── config/                 # env.validation.ts (Joi schema) + typeorm.config.ts (registerAs factory)
-├── database/migrations/    # Migration TypeORM — KHÔNG dùng synchronize
+├── database/
+│   ├── migrations/         # Migration TypeORM — KHÔNG dùng synchronize
+│   └── seeds/              # Seed CLI (npm run seed) — script ngoài Nest, không phải feature module
 ├── i18n/{lang}/*.json      # File dịch (common/errors/validation), copy sang dist qua nest-cli assets
 ├── redis/                  # Infra module (@Global) — cung cấp RedisService cho toàn app
 └── modules/{feature}/      # Feature module theo domain (mục 1)
@@ -426,6 +430,8 @@ common/, config/ ◀── tầng thấp nhất: KHÔNG được import giá tr�
 - Nếu 2 module cần dữ liệu của nhau (A cần B, B cần A) → dấu hiệu cần tách thêm 1 module thứ 3 chứa phần dùng chung, không phá lệ để import vòng.
 - `common/` chỉ được phụ thuộc `modules/` ở **mức type**, bằng `import type` — không import giá trị (class, service, constant runtime). Ví dụ `common/decorators/current-user.decorator.ts` cần shape của `User`: `import type { User } from '../../modules/users/entities/user.entity'`. `import type` bị xoá hoàn toàn khi compile (kiểm chứng: `dist/common/decorators/current-user.decorator.js` không có `require` nào tới users) nên tầng thấp nhất vẫn không có runtime coupling ngược chiều. Import thường (không có `type`) sẽ tạo coupling thật và phải sửa.
 - Không đặt decorator/util dùng chung vào một feature module chỉ vì "nó liên quan domain đó": `@CurrentUser` được cả `users`, `profiles`, `auth` dùng — chuyển nó vào `modules/auth/` sẽ khiến `users → auth` trong khi `auth → users` đã tồn tại, tức là **import vòng**. Thứ nhiều module cùng dùng thuộc `common/`.
+- **Cùng nguyên tắc áp dụng cho enum/type, không chỉ decorator/util.** Câu hỏi để quyết định một enum thuộc `common/` hay thuộc module sở hữu cột DB: enum đó có bị **nhiều module không liên quan trực tiếp tới nhau** cùng cần dùng ở **runtime** (so sánh giá trị, không chỉ khai kiểu) không? Ví dụ thật trong repo: `UserRole` (`CUSTOMER|ADMIN`) tưởng như thuộc `users` (đúng là cột `users.role`), nhưng `RolesGuard`/`@Roles()` cần so sánh giá trị này ở **controller của gần như mọi module** có route admin-only (`categories`, `products`, `orders`, `chat`, `product-suggestions`...) — những module này **không** nằm trong chiều phụ thuộc `→ users` ở trên. Nếu để `UserRole` trong `users/entities/user.entity.ts`, mỗi module đó phải tự thêm dependency `→ users` chỉ để lấy 1 enum, và `common/` (nếu có `RolesGuard` chung) còn vi phạm thẳng rule "chỉ `import type` từ `modules/`" vì enum TypeScript **không bị xoá khi compile** (khác `interface`/`type`) — so sánh giá trị bắt buộc phải import giá trị thật. Giải pháp: đặt `UserRole` ở `common/enums/user-role.enum.ts`, `user.entity.ts` import lại từ đó để khai cột `role` — không định nghĩa hai nơi. `UserStatus` thì khác: chỉ `auth` (đã có sẵn `auth → users`) cần so sánh giá trị này, nên giữ nguyên trong `user.entity.ts`, không cần chuyển.
+- **Áp dụng:** trước khi đặt một enum/type mới vào entity hay service của module, tự hỏi "route/guard/decorator ở module KHÁC (không có quan hệ `→` với module này) có cần so sánh giá trị này không?" — nếu có và số module cần dùng nhiều hơn 1-2 (không phải quan hệ 1-1 rõ ràng), đặt ở `common/enums/` (hoặc `common/constants/` nếu là hằng số, không phải enum) ngay từ đầu, đừng đợi phát hiện xung đột dependency mới chuyển.
 
 **Vì sao:** import vòng giữa module gây lỗi khởi tạo DI khó debug (`Nest can't resolve dependencies`), và làm mất khả năng test module độc lập.
 
@@ -885,7 +891,96 @@ async favorite(
 
 ---
 
-## 22. Checklist trước khi tạo PR
+## 22. Row Locking — Transaction Đơn Thuần Không Đủ Khi Nhiều Request Đua Trên Cùng Một Row
+
+**Rule:** `dataSource.transaction()` (mục 6) chỉ đảm bảo atomic (tất cả hoặc không gì) — KHÔNG tự động chặn 2 transaction đồng thời cùng đọc rồi cùng ghi lên 1 row (lost update) ở mức isolation mặc định READ COMMITTED của Postgres. Khi nghiệp vụ có dạng "đọc giá trị hiện tại → tính toán → ghi lại" trên MỘT row mà nhiều request có thể chạm cùng lúc (trừ tồn kho khi checkout, chuyển trạng thái đơn, mở conversation OPEN...), phải chọn một trong hai cách, không chỉ bọc transaction rồi coi là xong:
+
+1. **Atomic UPDATE có điều kiện, đọc affected rows** — ưu tiên khi diễn đạt được bằng 1 câu UPDATE: `UPDATE products SET stock = stock - :qty WHERE id = :id AND stock >= :qty`, rồi kiểm số dòng bị ảnh hưởng để biết hết hàng hay thua race — không cần lock tường minh.
+2. **Pessimistic lock tường minh** khi logic phức tạp hơn 1 UPDATE (phải đọc, rẽ nhánh, rồi mới ghi nhiều bảng) — dùng `manager.findOne(Entity, { where, lock: { mode: 'pessimistic_write' } })` để khóa row tới khi transaction commit/rollback; transaction khác đọc cùng row bằng `pessimistic_write` phải đợi.
+
+**Sai (có transaction nhưng vẫn race vì không lock):**
+
+```typescript
+return this.dataSource.transaction(async (manager) => {
+  const product = await manager.findOne(Product, { where: { id: productId } });
+  if (product.stock < quantity) throw new ConflictException('out of stock');
+  product.stock -= quantity;
+  await manager.save(product); // 2 request đọc cùng stock=1 trước khi request nào kịp ghi → cả 2 pass check, cả 2 đều trừ được
+});
+```
+
+**Đúng:**
+
+```typescript
+return this.dataSource.transaction(async (manager) => {
+  const product = await manager.findOne(Product, {
+    where: { id: productId },
+    lock: { mode: 'pessimistic_write' },
+  });
+  if (product.stock < quantity) throw new ConflictException('out of stock');
+  product.stock -= quantity;
+  await manager.save(product);
+});
+```
+
+**Áp dụng:** checkout (ORDER-01, trừ tồn — "stock=1 chỉ một buyer thắng"), chuyển trạng thái đơn (ORDER-07, admin confirm/reject đua với customer cancel), mở conversation OPEN (CHAT-01 — partial unique index chỉ bắt lỗi ở COMMIT, muốn trả lời "đã có conversation đang mở" ngay thay vì để lỗi 23505 lọt ra thì vẫn cần lock hoặc catch đúng lỗi unique). Viết e2e mô phỏng đúng race bằng `Promise.all([request1, request2])` nhắm cùng 1 row, assert chỉ một request thắng — không chỉ test tuần tự từng request một.
+
+---
+
+## 23. Idempotency-Key — Pattern Dùng Chung Cho Checkout Và Chat
+
+**Bối cảnh:** Cả `POST /orders` (ORDER-01) và `POST /chat/.../messages` (CHAT-04) đều nhận header `Idempotency-Key` cộng cột `request_hash` để chặn retry tạo trùng — cùng một pattern, khác bảng. Nếu mỗi module tự viết lại logic "so key, so hash, quyết định replay hay conflict", dễ lệch nhau âm thầm (vi phạm mục 15 — không tự định nghĩa lại khái niệm đã có).
+
+**Rule:** Trước khi PR12 (checkout) và PR15 (chat) cùng cần logic này, tách helper dùng chung trong `common/utils/` (vd `idempotency.util.ts`) với tối thiểu:
+
+- `canonicalizeForHash(payload: unknown): string` — chuẩn hoá object thành chuỗi ổn định (key sort) trước khi hash, để cùng nội dung logic luôn ra cùng hash bất kể client gửi field theo thứ tự nào.
+- Tái sử dụng `sha256HexCheck()` (`common/utils/sha256-hex-check.util.ts`) ở entity, và một hàm hash tương ứng (vd Node `crypto.createHash('sha256')`) ở service.
+
+Logic quyết định "cùng key + cùng hash → trả lại kết quả cũ; cùng key + khác hash → 409" vẫn nằm trong service của từng module (vì "kết quả cũ" khác nhau giữa order và chat message), chỉ phần canonicalize + hash dùng chung.
+
+**Áp dụng:** khi bắt đầu PR12/PR15, kiểm tra `common/utils/idempotency.util.ts` đã có chưa trước khi viết hàm hash riêng trong service.
+
+---
+
+## 24. WebSocket Gateway — Cùng Nguyên Tắc Mỏng Như Controller
+
+**Rule:** Gateway (`@WebSocketGateway()`, dùng cho CHAT-07) áp dụng đúng nguyên tắc mục 3 (Controller chỉ là tầng định tuyến): handler chỉ xác thực handshake, kiểm quyền join room, gọi service, và emit — không tự query DB hay xử lý điều kiện nghiệp vụ. Business logic (lưu message, cập nhật `last_message_at`, quyết định ai được join room nào) nằm trong `ChatService`; gateway gọi lại y như controller gọi service.
+
+**Vì sao:** gateway dễ bị viết business logic trực tiếp vì không có sẵn "cảm giác tầng routing" rõ như HTTP controller — nếu để logic trong gateway, REST và WebSocket sẽ có 2 nơi cùng chứa 1 phần nghiệp vụ, dễ lệch hành vi khi sau này có endpoint REST đọc lại dữ liệu đã publish qua WS.
+
+**Áp dụng:** khi viết `ChatGateway` ở PR15, handler `handleMessage()` chỉ validate DTO → gọi `chatService.sendMessage(...)` → emit kết quả; không tự `chatMessageRepository.save()` trong gateway.
+
+---
+
+## 25. Scheduled Job (`@nestjs/schedule`) — Idempotent, Không Chồng Lấn, Timeout Riêng
+
+**Bối cảnh:** SYS-01 (dispatch mỗi phút) và SYS-04 (báo cáo doanh thu 00:10 đầu tháng) đều dùng `@Cron()`.
+
+**Rule:**
+
+- Handler `@Cron()` phải tự an toàn khi bị gọi 2 lần chồng nhau (lần trước chưa xong mà lần sau đã tới, vd query chậm) — dùng cờ `isRunning` trong service, hoặc advisory lock Postgres (`pg_try_advisory_lock`) nếu chạy nhiều instance app cùng lúc; không giả định "chỉ có 1 instance nên không cần lo".
+- Không log lỗi bằng `console.*` trong handler cron — mục 17.5 áp dụng y hệt cho code chạy nền, không chỉ code trong request.
+- Job phải tự giới hạn batch (SYS-01 đã ghi rõ "tối đa 50" trong `api-requirements.csv`) — không query toàn bộ PENDING rồi xử lý hết 1 lần, tránh 1 lần chạy quá lâu chồng vào lần chạy kế tiếp.
+
+**Áp dụng:** khi viết `NotificationDispatcherService`/`MonthlyReportService` ở PR05/PR16, thêm test cho "gọi handler 2 lần gần nhau, lần 2 không xử lý trùng dữ liệu lần 1 đang xử lý".
+
+---
+
+## 26. Tiền VND — Chuỗi Số, Validate Cận Trước Khi Tính, Không Dùng `parseFloat`
+
+**Bối cảnh:** `database.md` mục 2 quy định `price_vnd`/`total_vnd` lưu `numeric(14,0)`, API trả **chuỗi** (vd `"250000"`) vì driver Postgres trả numeric dạng string để tránh mất độ chính xác khi ép qua JS `number`.
+
+**Rule:**
+
+- DTO nhận trường tiền dạng `string`, validate bằng `@Matches(/^\d+$/)` (chỉ chữ số) cộng kiểm cận nghiệp vụ (`1..1_000_000_000` cho đơn giá, `1..1_980_000_000_000` cho tổng đơn — đúng `MIN/MAX_PRODUCT_PRICE_VND`, `MIN/MAX_ORDER_TOTAL_VND` đã có ở `constants/` của `products`/`orders`) **trước khi** chuyển sang `Number` để tính.
+- Không dùng `parseFloat()`/`Number()` trực tiếp lên input chưa validate cận — chuỗi dài (vd 20 chữ số) ép qua `Number` mất độ chính xác âm thầm, không throw lỗi nào báo.
+- Phép tính tổng đơn (`line_total = unit_price * quantity`, `order.total = Σ line_total`) an toàn bằng `Number` thường **chỉ vì** đã kiểm cận trước (`1_980_000_000_000 < Number.MAX_SAFE_INTEGER`) — nếu sau này mở cận (vd đơn hàng B2B lớn hơn), phải đổi sang `BigInt`/thư viện decimal, không tự tin giữ nguyên `Number`.
+
+**Áp dụng:** khi viết `CreateOrderDto`/`ProductPatchRequest`/tương tự có field tiền, theo đúng thứ tự: validate string bằng regex → parse `Number` sau khi qua cận → tính toán → serialize lại thành string khi trả response.
+
+---
+
+## 27. Checklist trước khi tạo PR
 
 - [ ] Controller không chứa business logic — chỉ gọi service. Kể cả dựng response DTO (`XxxResponseDto.fromEntity()`) cũng phải nằm trong service, không gọi thẳng từ controller (mục 3).
 - [ ] Mỗi module đúng 1 domain, không lẫn nghiệp vụ khác; không có import vòng giữa module (mục 10).
@@ -920,3 +1015,9 @@ async favorite(
 - [ ] Sau `save()`/`insert()`, không re-fetch dữ liệu đã có sẵn trong tay chỉ để dựng response; không tự query lại một quan hệ mà điều kiện đã biết trước kết quả (vd self-follow) (mục 18.8, 18.9).
 - [ ] Thêm/sửa key i18n thì sửa **cả** `en/` và `vi/` — chạy `npm test` (bao gồm `i18n-key-parity.spec.ts`) để tự xác nhận không lệch key (mục 11).
 - [ ] Route mới hoặc route đổi hành vi lỗi có `@ApiOperation` + `@ApiResponse` cho từng status lỗi thực sự có thể trả (mục 19).
+- [ ] Enum/type mới không tự động đặt trong entity của module sở hữu cột DB — đã tự hỏi có module khác không liên quan trực tiếp cần dùng giá trị này ở runtime không; nếu có, đặt ở `common/enums/` (mục 10).
+- [ ] Thao tác "đọc rồi ghi lại" trên 1 row có thể bị nhiều request chạm cùng lúc (trừ tồn, đổi trạng thái, mở conversation) dùng atomic UPDATE có điều kiện hoặc `pessimistic_write` lock — không chỉ bọc `dataSource.transaction()` rồi coi là đủ (mục 22).
+- [ ] Logic Idempotency-Key mới (checkout/chat) tái sử dụng helper hash/canonicalize dùng chung, không viết lại từ đầu (mục 23).
+- [ ] Handler WebSocket gateway không tự query DB/xử lý nghiệp vụ — chỉ gọi service, cùng nguyên tắc controller mỏng (mục 24).
+- [ ] Handler `@Cron()` mới tự chống chạy chồng lấn (`isRunning`/advisory lock) và có giới hạn batch tường minh (mục 25).
+- [ ] Field tiền (VND) nhận dạng `string` đã validate cận trước khi ép `Number` để tính, không dùng `parseFloat` trực tiếp lên input chưa kiểm (mục 26).

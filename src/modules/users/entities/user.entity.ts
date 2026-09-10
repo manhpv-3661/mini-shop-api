@@ -8,12 +8,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
+import { UserRole } from '../../../common/enums/user-role.enum';
 import { enumCheck } from '../../../common/utils/enum-check.util';
-
-export enum UserRole {
-  CUSTOMER = 'CUSTOMER',
-  ADMIN = 'ADMIN',
-}
 
 export enum UserStatus {
   PENDING = 'PENDING',
