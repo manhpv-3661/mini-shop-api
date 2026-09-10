@@ -1,13 +1,15 @@
 # Checklist tự review trước khi mở PR — rút từ pattern reviewer thật
 
-Tài liệu này khác [CODING_STANDARD.md](../../CODING_STANDARD.md) ở chỗ: thay vì suy luận lý thuyết, các mục 🔴 dưới đây được rút trực tiếp từ **comment review thật** trên 4 Pull Request công khai của các học viên khác cùng chương trình training NestJS mock project, tất cả đều do **cùng một reviewer (`lamnv-1116`)** chấm:
+Tài liệu này khác [CODING_STANDARD.md](../../CODING_STANDARD.md) ở chỗ: thay vì suy luận lý thuyết, các mục 🔴 dưới đây được rút trực tiếp từ **comment review thật** trên các Pull Request công khai của các học viên khác cùng chương trình training NestJS mock project, tất cả đều do **cùng một reviewer (`lamnv-1116`)** chấm:
 
 - https://github.com/thaind-2785/nestjs-mock-project/pull/7
 - https://github.com/thaind-2785/nestjs-mock-project/pull/8
 - https://github.com/thanhnn-3239/realworld-tutorial/pull/21
 - https://github.com/thanhdn-2601/nestjs_tutorial/pull/3
+- https://github.com/thanhnn-3239/realworld-tutorial/pull/22 (upload avatar qua object storage — bổ sung 10/09/2026)
+- https://github.com/yenvt-0228/store-web/pull/10 (publish order event qua Kafka — bổ sung 10/09/2026)
 
-Vì cùng một người review cả 4 PR, những gì lặp lại nhiều lần ở đây gần như chắc chắn sẽ lặp lại khi PR của chính dự án Mini Shop được gửi đi — đây không phải checklist "chuẩn chung chung", mà là hồ sơ hành vi thật của một reviewer cụ thể.
+Vì cùng một người review cả 6 PR, những gì lặp lại nhiều lần ở đây gần như chắc chắn sẽ lặp lại khi PR của chính dự án Mini Shop được gửi đi — đây không phải checklist "chuẩn chung chung", mà là hồ sơ hành vi thật của một reviewer cụ thể. Bảng tần suất bên dưới ("Top pattern lặp lại nhiều nhất") vẫn giữ nguyên số liệu gốc trên 4 PR đầu (TypeORM/Postgres) để không bịa tần suất; 2 PR bổ sung dùng stack khác hẳn (Prisma thay TypeORM, Kafka event bus thay vì chỉ REST) nên được dùng làm **bằng chứng chéo stack** — pattern nào lặp lại ở cả 2 PR mới xác nhận đây là thói quen review ổn định của `lamnv-1116`, không phải đặc thù riêng TypeORM/NestJS, và được thêm thành mục riêng ở phần "Bổ sung sau khi đối chiếu 2 PR khác stack" bên dưới thay vì gộp vào bảng tần suất gốc.
 
 ## Phong cách reviewer (để đọc hiểu đúng comment khi nhận được)
 
@@ -49,7 +51,7 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 
 ### Code Structure
 
-- [ ] 🔴 Interface dùng trong service/controller đã tách ra `interfaces/*.interface.ts`, không khai trực tiếp trong file logic chính (CODING_STANDARD mục 4).
+- [ ] 🔴 Interface dùng trong service/controller đã tách ra `interfaces/*.interface.ts`, không khai trực tiếp trong file logic chính (CODING_STANDARD mục 4). **Kể cả khi có lý do kỹ thuật hợp lý để khai inline (vd tránh import cycle giữa 2 service) — reviewer vẫn không chấp nhận, kể cả khi code đã có comment giải thích rõ lý do; yêu cầu là tách file riêng và giải quyết cycle bằng cách khác (đặt interface ở vị trí trung lập hơn trong dependency graph), không né rule bằng cách khai inline** (nguồn: PR thanhnn-3239/realworld-tutorial#22 — `AvatarReplacementRow` khai trong service kèm comment giải thích cycle, reviewer vẫn yêu cầu tách file và còn nhắc thêm "nếu dùng AI flow thì nên update skill/prompt để nó luôn tách file interface").
 - [ ] 🔴 **Magic number/regex/path cố định đã gom vào `constants/` của đúng module sở hữu** (không rải rác từng DTO/service) — pattern reviewer nhắc 3/4 PR.
 - [ ] 🔴 **Không có hàm nào quá dài hoặc if/else lồng quá 3 cấp; logic lặp lại giữa 2+ hàm đã rút thành hàm dùng chung** — nếu thấy mình đang copy-paste, dừng lại và tách hàm.
 - [ ] 🔴 Controller không chứa business logic, chỉ gọi service (CODING_STANDARD mục 3).
@@ -63,6 +65,14 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 - [ ] Handler WebSocket gateway không tự query DB/xử lý nghiệp vụ — chỉ gọi service, cùng nguyên tắc controller mỏng (CODING_STANDARD mục 24).
 - [ ] Handler `@Cron()` mới tự chống chạy chồng lấn và có giới hạn batch tường minh (CODING_STANDARD mục 25).
 - [ ] Field tiền (VND) validate cận trên `string` trước khi ép `Number` để tính, không dùng `parseFloat` trực tiếp lên input chưa kiểm (CODING_STANDARD mục 26).
+
+### Bổ sung sau khi đối chiếu 2 PR khác stack (Prisma + Kafka, 10/09/2026)
+
+Không nằm trong 4 PR TypeORM gốc, nhưng lặp lại xuyên suốt cả 2 PR mới nên được coi là thói quen review thật, không phải suy luận lý thuyết:
+
+- [ ] 🔴 Khi một hành động **bù trừ/rollback** (xóa file/object mồ côi, hoàn kho, hủy giao dịch...) tự nó thất bại — đã có chiến lược rõ ràng hơn "log rồi bỏ qua" (retry/reconciliation job định kỳ, dead-letter, cảnh báo), không chỉ `catch { logger.error(...) }` rồi dừng. Mini Shop **đã có** câu trả lời đúng cho trường hợp cụ thể này ở CODING_STANDARD mục 6 ("Lưu ý theo mentor" — dọn file mồ côi bằng cron hàng tháng, không chặn transaction chính); khi hiện thực attachments/avatar, phải nối đúng vào cơ chế cron đó chứ không viết lại kiểu try/catch-and-log độc lập (nguồn: PR thanhnn-3239/realworld-tutorial#22 — reviewer hỏi lại 3 lần riêng biệt dạng "nếu xóa/cleanup bị lỗi thì xử lý thế nào", mỗi lần một hàm khác nhau).
+- [ ] 🔴 Một nghiệp vụ vừa ghi DB vừa gửi side-effect ra hệ thống ngoài (publish message queue, gọi webhook, gửi email) — đã xử lý rõ trường hợp DB ghi thành công nhưng gửi side-effect thất bại (event/thông báo mất vĩnh viễn); không coi "gửi ngay sau khi transaction DB commit" là an toàn mặc định (dual-write problem kinh điển). Áp dụng cho notifications module hiện tại (`email-notification.entity.ts`) và bất kỳ tích hợp message queue/webhook nào sau này (nguồn: PR yenvt-0228/store-web#10 — reviewer: "khi errors, Order đã lưu trong database nhưng event có thể bị mất, cần tối ưu lại logic trong transaction tạo order").
+- [ ] Handler nhận message/event từ nguồn phát **at-least-once** (message queue, webhook) kiểm tra id đã xử lý chưa trước khi chạy side-effect (idempotent consumer) — broker/webhook có thể gửi trùng, khác với Idempotency-Key ở CODING_STANDARD mục 23 (đó là chống client tự retry, đây là chống broker tự retry) (nguồn: PR yenvt-0228/store-web#10 — reviewer: "co cần check eventId, event trùng lặp không").
 
 ### Bảo mật 🟡 (chưa từng bị nhắc trong 4 PR — khoảng trống thật, không phải đã kiểm và pass)
 
@@ -90,7 +100,7 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 
 - [ ] Swagger cập nhật nếu thêm/đổi endpoint (CODING_STANDARD mục 19).
 - [ ] Env var mới đã thêm vào `.env.example` kèm mô tả.
-- [ ] 🔴 Các xử lý được coi là quan trọng (rate-limit, upload, auth) có `Logger` ghi đủ ngữ cảnh để debug sau này — không chỉ log khi lỗi.
+- [ ] 🔴 Các xử lý được coi là quan trọng (rate-limit, upload, auth, xóa/dọn tài nguyên mồ côi ở storage ngoài) có `Logger` ghi đủ ngữ cảnh để debug sau này — không chỉ log khi lỗi, mà cả khi thực hiện thao tác xóa/dọn, để truy vết được trên production (vd AWS CloudWatch) (nguồn bổ sung: PR thanhnn-3239/realworld-tutorial#22).
 
 ## Nguồn tham khảo dùng để bổ sung phần 🟡
 
