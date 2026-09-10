@@ -1,0 +1,21 @@
+{
+  "IS_EMAIL": "Email must be a valid email address",
+  "IS_STRING": "This field must be a string",
+  "IS_ARRAY": "This field must be an array",
+  "IS_INT": "This field must be an integer",
+  "IS_UUID": "This field must be a valid UUID",
+  "IS_ENUM": "This field contains an unsupported value",
+  "MIN_LENGTH_USERNAME": "Username must be at least 3 characters",
+  "MAX_LENGTH_USERNAME": "Username must not exceed 30 characters",
+  "MIN_LENGTH_PASSWORD": "Password must be at least 8 characters",
+  "MAX_LENGTH_PASSWORD": "Password must not exceed 72 bytes",
+  "MIN_LENGTH_NAME": "Name must not be empty",
+  "MAX_LENGTH_NAME": "Name must not exceed the allowed length",
+  "MIN_LENGTH_DESCRIPTION": "Description must not be empty",
+  "MAX_LENGTH_DESCRIPTION": "Description must not exceed the allowed length",
+  "MIN_LENGTH_BODY": "Body must not be empty",
+  "MAX_LENGTH_BODY": "Body must not exceed the allowed length",
+  "MIN_LIMIT": "Limit must be at least 1",
+  "MAX_LIMIT": "Limit must not exceed 100",
+  "MIN_OFFSET": "Offset must not be negative"
+}
