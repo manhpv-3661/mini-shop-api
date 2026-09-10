@@ -11,12 +11,7 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { UserRole } from '../../../common/enums/user-role.enum';
 import { enumCheck } from '../../../common/utils/enum-check.util';
-
-export enum UserStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-}
+import { UserStatus } from '../enums/user-status.enum';
 
 /**
  * Danh tính và quyền. Registration luôn tạo CUSTOMER/PENDING; verify email chuyển PENDING → ACTIVE.

@@ -11,11 +11,7 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { enumCheck } from '../../../common/utils/enum-check.util';
 import { User } from '../../users/entities/user.entity';
-
-export enum AuthTokenType {
-  EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-}
+import { AuthTokenType } from '../enums/auth-token-type.enum';
 
 /**
  * Token kích hoạt/reset dùng một lần. Chỉ lưu SHA-256 hash, không lưu raw token.

@@ -11,11 +11,7 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { enumCheck } from '../../../common/utils/enum-check.util';
 import { User } from '../../users/entities/user.entity';
-
-export enum ChatConversationStatus {
-  OPEN = 'OPEN',
-  CLOSED = 'CLOSED',
-}
+import { ChatConversationStatus } from '../enums/chat-conversation-status.enum';
 
 /**
  * Một phiên support giữa customer và admin. Mỗi customer chỉ có tối đa một conversation OPEN

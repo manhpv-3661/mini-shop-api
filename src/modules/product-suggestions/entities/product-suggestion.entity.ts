@@ -15,12 +15,7 @@ import {
   MAX_SUGGESTION_NAME_LENGTH,
   MIN_SUGGESTION_NAME_LENGTH,
 } from '../constants/product-suggestions.constants';
-
-export enum ProductSuggestionStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
+import { ProductSuggestionStatus } from '../enums/product-suggestion-status.enum';
 
 /**
  * Workflow gợi ý sản phẩm PENDING → APPROVED|REJECTED. Approve KHÔNG tự tạo product (vẫn cần

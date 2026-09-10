@@ -17,14 +17,7 @@ import {
   MAX_ORDER_TOTAL_VND,
   MIN_ORDER_TOTAL_VND,
 } from '../constants/orders.constants';
-
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  CONFIRMED = 'CONFIRMED',
-  COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED',
-  REJECTED = 'REJECTED',
-}
+import { OrderStatus } from '../enums/order-status.enum';
 
 /**
  * Header của đơn. `POST /orders` không nhận total/price/userId/status từ client — server tính

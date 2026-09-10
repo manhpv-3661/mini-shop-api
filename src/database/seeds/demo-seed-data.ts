@@ -5,7 +5,8 @@ import { UserRole } from '../../common/enums/user-role.enum';
 import { Category } from '../../modules/categories/entities/category.entity';
 import { Product } from '../../modules/products/entities/product.entity';
 import { SALT_ROUNDS } from '../../modules/users/constants/users.constants';
-import { User, UserStatus } from '../../modules/users/entities/user.entity';
+import { User } from '../../modules/users/entities/user.entity';
+import { UserStatus } from '../../modules/users/enums/user-status.enum';
 import type {
   CategorySeed,
   ProductSeed,

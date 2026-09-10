@@ -14,21 +14,8 @@ import { enumCheck } from '../../../common/utils/enum-check.util';
 import { AuthToken } from '../../auth/entities/auth-token.entity';
 import { Order } from '../../orders/entities/order.entity';
 import { MAX_EMAIL_NOTIFICATION_ATTEMPTS } from '../constants/notifications.constants';
-
-export enum EmailNotificationEventType {
-  EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  ORDER_PLACED = 'ORDER_PLACED',
-  ORDER_CONFIRMED = 'ORDER_CONFIRMED',
-  ORDER_REJECTED = 'ORDER_REJECTED',
-  MONTHLY_REVENUE = 'MONTHLY_REVENUE',
-}
-
-export enum EmailNotificationStatus {
-  PENDING = 'PENDING',
-  SENT = 'SENT',
-  FAILED = 'FAILED',
-}
+import { EmailNotificationEventType } from '../enums/email-notification-event-type.enum';
+import { EmailNotificationStatus } from '../enums/email-notification-status.enum';
 
 /**
  * Outbox — ý định gửi email được lưu bền, ghi cùng transaction với sự kiện phát sinh (register,

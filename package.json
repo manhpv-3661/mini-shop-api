@@ -117,6 +117,7 @@
       "!**/*.dto.ts",
       "!**/*.constants.ts",
       "!**/*.entity.ts",
+      "!**/*.enum.ts",
       "!database/migrations/**",
       "!database/seeds/seed.ts"
     ],

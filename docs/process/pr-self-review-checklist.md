@@ -58,6 +58,7 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 - [ ] 🔴 **Access modifier (`private`/`public`) đã rà soát nhất quán** — method chỉ dùng nội bộ class phải `private`; áp dụng đồng bộ cho các hàm cùng vai trò trong file.
 - [ ] Tên hàm/biến rõ nghĩa nghiệp vụ; method repository theo đúng convention CRUD (CODING_STANDARD mục 12).
 - [ ] Enum/type mới không mặc định đặt trong entity/service của module sở hữu dữ liệu — đã tự hỏi module khác không liên quan trực tiếp có cần dùng giá trị này ở runtime không (vd `UserRole` cho RBAC ở mọi module); nếu có, đặt ở `common/enums/` (CODING_STANDARD mục 10).
+- [ ] 🔴 **Enum không cross-module vẫn phải tách file riêng `enums/<ten>.enum.ts`, không khai `export enum` ngay trong file entity** — kể cả khi chỉ dùng trong 1 module, cùng lý do với việc tách interface (mục 4). Đây từng là bug thật trong repo: 6/7 enum (`AuthTokenType`, `UserStatus`, `OrderStatus`, `EmailNotificationEventType`, `EmailNotificationStatus`, `ChatConversationStatus`, `ProductSuggestionStatus`) bị khai thẳng trong entity trong khi `UserRole` đã được tách đúng — không nhất quán dù cùng loại vấn đề. Đồng thời rà soát mọi `const` viết hoa ở đầu file entity/service (vd `Object.values(SomeEnum)` gán vào 1 biến rồi dùng lại) — nếu enum/constant khác trong cùng codebase gọi trực tiếp tại chỗ dùng, không memoize riêng, phải nhất quán theo cách đó.
 
 ### Kiến trúc dự án (khoảng trống tự phát hiện khi build schema — chưa nằm trong 4 PR đã phân tích)
 

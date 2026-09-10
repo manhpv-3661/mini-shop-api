@@ -10,9 +10,8 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { enumCheck } from '../../../common/utils/enum-check.util';
 import { User } from '../../users/entities/user.entity';
-import { Order, OrderStatus } from './order.entity';
-
-const ORDER_STATUS_VALUES = Object.values(OrderStatus);
+import { OrderStatus } from '../enums/order-status.enum';
+import { Order } from './order.entity';
 
 /**
  * Ai chuyển trạng thái đơn, khi nào — chỉ append, không có API sửa/xóa (service bảo vệ, không
@@ -28,11 +27,11 @@ const ORDER_STATUS_VALUES = Object.values(OrderStatus);
 @Index('idx_order_status_history_actor', ['actorUserId'])
 @Check(
   'ck_order_status_history_to_status',
-  enumCheck('to_status', ORDER_STATUS_VALUES),
+  enumCheck('to_status', Object.values(OrderStatus)),
 )
 @Check(
   'ck_order_status_history_from_status',
-  `from_status IS NULL OR ${enumCheck('from_status', ORDER_STATUS_VALUES)}`,
+  `from_status IS NULL OR ${enumCheck('from_status', Object.values(OrderStatus))}`,
 )
 @Check(
   'ck_order_status_history_transition',
