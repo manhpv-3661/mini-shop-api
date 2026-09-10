@@ -11,6 +11,10 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { enumCheck } from '../../../common/utils/enum-check.util';
 import { User } from '../../users/entities/user.entity';
+import {
+  MAX_SUGGESTION_NAME_LENGTH,
+  MIN_SUGGESTION_NAME_LENGTH,
+} from '../constants/product-suggestions.constants';
 
 export enum ProductSuggestionStatus {
   PENDING = 'PENDING',
@@ -36,7 +40,7 @@ export enum ProductSuggestionStatus {
 @Index('idx_product_suggestions_reviewed_by', ['reviewedBy'])
 @Check(
   'ck_product_suggestions_name_length',
-  `char_length(name) BETWEEN 2 AND 200`,
+  `char_length(name) BETWEEN ${MIN_SUGGESTION_NAME_LENGTH} AND ${MAX_SUGGESTION_NAME_LENGTH}`,
 )
 @Check(
   'ck_product_suggestions_status',
