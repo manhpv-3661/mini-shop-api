@@ -9,21 +9,31 @@ import {
   Unique,
 } from 'typeorm';
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
+import { MAX_LINE_ITEM_QUANTITY } from '../../cart/constants/cart.constants';
+import {
+  MAX_PRODUCT_PRICE_VND,
+  MIN_PRODUCT_PRICE_VND,
+} from '../../products/constants/products.constants';
 import { Product } from '../../products/entities/product.entity';
 import { Order } from './order.entity';
 
 /**
  * Dữ liệu snapshot tại thời điểm mua — bất biến sau khi tạo đơn, không JOIN tên/giá hiện tại của
- * product cho đơn cũ (mục 4 database.md — "order_items").
+ * product cho đơn cũ (mục 4 database.md — "order_items"). Cận giá/số lượng tái sử dụng từ
+ * `products`/`cart` (CODING_STANDARD mục 15 — `orders` đã có dependency → 2 module đó sẵn, không
+ * định nghĩa lại cùng một cận ở nơi thứ ba).
  */
 @Entity({ name: 'order_items' })
 @Unique('uq_order_items_order_product', ['orderId', 'productId'])
 @Index('idx_order_items_product', ['productId'])
 @Check(
   'ck_order_items_unit_price_range',
-  `unit_price_vnd BETWEEN 1 AND 1000000000`,
+  `unit_price_vnd BETWEEN ${MIN_PRODUCT_PRICE_VND} AND ${MAX_PRODUCT_PRICE_VND}`,
 )
-@Check('ck_order_items_quantity_range', `quantity BETWEEN 1 AND 99`)
+@Check(
+  'ck_order_items_quantity_range',
+  `quantity BETWEEN 1 AND ${MAX_LINE_ITEM_QUANTITY}`,
+)
 @Check(
   'ck_order_items_line_total_matches',
   `line_total_vnd = unit_price_vnd * quantity`,

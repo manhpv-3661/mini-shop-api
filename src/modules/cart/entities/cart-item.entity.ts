@@ -12,7 +12,7 @@ import {
 import { UuidBaseEntity } from '../../../common/entities/uuid-base.entity';
 import { Product } from '../../products/entities/product.entity';
 import { User } from '../../users/entities/user.entity';
-import { MAX_CART_ITEM_QUANTITY } from '../constants/cart.constants';
+import { MAX_LINE_ITEM_QUANTITY } from '../constants/cart.constants';
 
 /**
  * Một dòng trong giỏ của user. Không có bảng carts riêng vì mỗi user chỉ có một giỏ hiện hành.
@@ -23,7 +23,7 @@ import { MAX_CART_ITEM_QUANTITY } from '../constants/cart.constants';
 @Index('idx_cart_items_product', ['productId'])
 @Check(
   'ck_cart_items_quantity_range',
-  `quantity BETWEEN 1 AND ${MAX_CART_ITEM_QUANTITY}`,
+  `quantity BETWEEN 1 AND ${MAX_LINE_ITEM_QUANTITY}`,
 )
 export class CartItem extends UuidBaseEntity {
   @Column({ name: 'user_id', type: 'uuid' })
