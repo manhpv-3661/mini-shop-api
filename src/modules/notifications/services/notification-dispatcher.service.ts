@@ -64,9 +64,9 @@ export class NotificationDispatcherService {
       }
       await this.enqueueOrFail(notification);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(
-        `Failed to dispatch notification ${notification.id} (event ${notification.eventType}): ${message}`,
+        `Failed to dispatch notification ${notification.id} (event ${notification.eventType})`,
+        error instanceof Error ? error.stack : String(error),
       );
     }
   }
