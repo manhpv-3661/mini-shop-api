@@ -1,0 +1,2 @@
+export const MIN_PRODUCT_PRICE_VND = 1;
+export const MAX_PRODUCT_PRICE_VND = 1_000_000_000;

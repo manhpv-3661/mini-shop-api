@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,8 +12,20 @@ import * as path from 'path';
 import { DataSourceOptions } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { envValidationSchema } from './config/env.validation';
 import { typeormConfig } from './config/typeorm.config';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CartModule } from './modules/cart/cart.module';
+import { CategoriesModule } from './modules/categories/categories.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ProductSuggestionsModule } from './modules/product-suggestions/product-suggestions.module';
+import { ProductsModule } from './modules/products/products.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { UsersModule } from './modules/users/users.module';
 import { RedisModule } from './redis/redis.module';
 
 @Module({
@@ -49,8 +61,23 @@ import { RedisModule } from './redis/redis.module';
     }),
     ScheduleModule.forRoot(),
     RedisModule,
+    UsersModule,
+    AuthModule,
+    AttachmentsModule,
+    CategoriesModule,
+    ProductsModule,
+    CartModule,
+    OrdersModule,
+    ReviewsModule,
+    NotificationsModule,
+    ChatModule,
+    ProductSuggestionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}
