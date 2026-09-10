@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { Logger } from '@nestjs/common';
+import { Command, Option } from 'commander';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { envValidationSchema } from '../../config/env.validation';
@@ -11,9 +12,32 @@ config();
 const SUPPORTED_PROFILES = ['demo'];
 const logger = new Logger('Seed');
 
-function readProfileArg(): string | undefined {
-  const arg = process.argv.find((value) => value.startsWith('--profile='));
-  return arg?.split('=')[1];
+interface SeedCliOptions {
+  profile: string;
+}
+
+/**
+ * `exitOverride`/`configureOutput` tắt hành vi mặc định của commander (tự in message tiếng Anh
+ * rồi gọi `process.exit()`), để lỗi luôn đi qua `Logger` tiếng Việt và `process.exitCode` giống
+ * mọi lỗi khác trong `main()` — không có 2 luồng thông báo lỗi khác nhau cho cùng 1 script.
+ */
+function parseArgs(): SeedCliOptions | undefined {
+  const program = new Command()
+    .exitOverride()
+    .configureOutput({ writeErr: () => {}, writeOut: () => {} })
+    .addOption(
+      new Option('--profile <profile>', 'Hồ sơ dữ liệu seed')
+        .choices(SUPPORTED_PROFILES)
+        .makeOptionMandatory(),
+    );
+
+  try {
+    program.parse(process.argv);
+  } catch {
+    return undefined;
+  }
+
+  return program.opts<SeedCliOptions>();
 }
 
 /**
@@ -21,8 +45,8 @@ function readProfileArg(): string | undefined {
  * Joi vì không có ConfigModule.forRoot() nào làm việc đó thay (mục 17.3 CODING_STANDARD.md).
  */
 async function main(): Promise<void> {
-  const profile = readProfileArg();
-  if (!profile || !SUPPORTED_PROFILES.includes(profile)) {
+  const options = parseArgs();
+  if (!options) {
     logger.error(
       `Thiếu hoặc sai --profile. Hỗ trợ: ${SUPPORTED_PROFILES.join(', ')}. Ví dụ: --profile=demo`,
     );
