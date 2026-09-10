@@ -1,4 +1,5 @@
 import * as Joi from 'joi';
+import { NOTIFICATION_SECRET_KEY_LENGTH_BYTES } from '../common/utils/notification-secret-cipher.util';
 
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -24,4 +25,17 @@ export const envValidationSchema = Joi.object({
   MAIL_HOST: Joi.string().required(),
   MAIL_PORT: Joi.number().port().required(),
   MAIL_FROM: Joi.string().email().required(),
+
+  // Deliberately separate key from JWT_SECRET — see notification-secret-cipher.util.ts.
+  NOTIFICATION_SECRET_KEY: Joi.string()
+    .custom((value: string, helpers) => {
+      if (
+        Buffer.from(value, 'base64').length !==
+        NOTIFICATION_SECRET_KEY_LENGTH_BYTES
+      ) {
+        return helpers.error('any.invalid');
+      }
+      return value;
+    })
+    .required(),
 });

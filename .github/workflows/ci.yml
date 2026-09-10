@@ -32,6 +32,11 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      mailpit:
+        image: axllent/mailpit:v1.27
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     env:
       NODE_ENV: test
@@ -51,6 +56,7 @@ jobs:
       MAIL_HOST: localhost
       MAIL_PORT: 1025
       MAIL_FROM: no-reply-test@mini-shop.example.com
+      NOTIFICATION_SECRET_KEY: w4hTQqZceZYRS0de5bVEx5HMjX9PbCx9WPafDJG2F0s=
 
     steps:
       - uses: actions/checkout@v4
