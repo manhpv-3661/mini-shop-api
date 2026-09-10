@@ -101,4 +101,4 @@ Mục có 🔴 lấy trực tiếp từ 4 PR thật ở trên; mục có 🟡 l�
 
 ## Cách dùng
 
-Chạy checklist này **sau** khi đã qua checklist mục 22 của `CODING_STANDARD.md` (nó phủ phần nền tảng/core), coi đây là lượt soát cuối tập trung vào đúng những gì reviewer thật hay bắt. Có thể yêu cầu Claude "chạy checklist docs/process/pr-self-review-checklist.md lên diff hiện tại" trước khi mở PR.
+Chạy checklist này **sau** khi đã qua checklist mục 27 của `CODING_STANDARD.md` (nó phủ phần nền tảng/core), coi đây là lượt soát cuối tập trung vào đúng những gì reviewer thật hay bắt. Có thể yêu cầu Claude "chạy checklist docs/process/pr-self-review-checklist.md lên diff hiện tại" trước khi mở PR.

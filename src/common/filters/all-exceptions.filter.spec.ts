@@ -20,7 +20,10 @@ describe('AllExceptionsFilter', () => {
     json = jest.fn();
     status = jest.fn().mockReturnValue({ json });
     host = {
-      switchToHttp: () => ({ getResponse: () => ({ status }) }),
+      switchToHttp: () => ({
+        getResponse: () => ({ status }),
+        getRequest: () => ({ id: 'test-request-id' }),
+      }),
     } as unknown as ArgumentsHost;
     jest.spyOn(Logger.prototype, 'error').mockImplementation(() => undefined);
   });

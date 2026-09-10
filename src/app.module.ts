@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -12,6 +12,7 @@ import * as path from 'path';
 import { DataSourceOptions } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { envValidationSchema } from './config/env.validation';
 import { typeormConfig } from './config/typeorm.config';
 import { AttachmentsModule } from './modules/attachments/attachments.module';
@@ -75,4 +76,8 @@ import { RedisModule } from './redis/redis.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+  }
+}

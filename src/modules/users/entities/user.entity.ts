@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Check,
   Column,
@@ -38,6 +39,12 @@ export class User extends UuidBaseEntity {
   @Column({ type: 'varchar', length: 30 })
   username: string;
 
+  /**
+   * Phòng thủ theo chiều sâu: response luôn phải qua UserResponseDto.fromEntity() (mục 9), không
+   * bao giờ trả entity thô — nhưng nếu lỡ quên, `@Exclude()` + `ClassSerializerInterceptor` (đã
+   * bật global ở configure-app.ts) vẫn chặn được bcrypt hash lọt ra ngoài.
+   */
+  @Exclude()
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   passwordHash: string;
 

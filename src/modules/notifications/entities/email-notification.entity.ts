@@ -1,3 +1,4 @@
+import { Exclude } from 'class-transformer';
 import {
   Check,
   Column,
@@ -111,6 +112,12 @@ export class EmailNotification extends UuidBaseEntity {
   @Column({ type: 'jsonb' })
   payload: Record<string, unknown>;
 
+  /**
+   * Phòng thủ theo chiều sâu: đây là raw activation/reset token đã mã hoá — không có endpoint nào
+   * cố ý trả field này, nhưng `@Exclude()` chặn cả trường hợp lỡ serialize entity thô (xem lý do
+   * tương tự ở `User.passwordHash`).
+   */
+  @Exclude()
   @Column({ name: 'secret_ciphertext', type: 'bytea', nullable: true })
   secretCiphertext: Buffer | null;
 

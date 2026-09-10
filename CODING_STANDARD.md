@@ -531,7 +531,7 @@ Sunlint là **heuristic**, một số cảnh báo không phản ánh đúng th�
 
 **Rule khi thêm ngoại lệ mới:** không tự ý bỏ qua warning — phải ghi lý do cụ thể vào bảng này khi quyết định "chấp nhận, không sửa", để review sau còn biết đây là quyết định có chủ đích chứ không phải bỏ sót.
 
-**Sunlint là gate CỤC BỘ, không phải gate CI.** `sunlint` được cài global (`@sun-asterisk/sunlint`), không có trong `devDependencies`, nên `npm ci` trên CI không có binary này — `ci.yml` **không** chạy được `lint:sunlint` và không nên thêm vào. Trách nhiệm chạy nằm ở người tạo PR (mục 22) kèm ảnh chụp kết quả. File `.sunlint-eslint.config.js` do sunlint tự sinh ra mỗi lần chạy, chứa **đường dẫn tuyệt đối theo máy** (`C:Users...`) nên đã được liệt trong `.gitignore`, `.prettierignore` và `ignores` của eslint — không commit, không format, không lint file này.
+**Sunlint là gate CỤC BỘ, không phải gate CI.** `sunlint` được cài global (`@sun-asterisk/sunlint`), không có trong `devDependencies`, nên `npm ci` trên CI không có binary này — `ci.yml` **không** chạy được `lint:sunlint` và không nên thêm vào. Trách nhiệm chạy nằm ở người tạo PR (mục 27) kèm ảnh chụp kết quả. File `.sunlint-eslint.config.js` do sunlint tự sinh ra mỗi lần chạy, chứa **đường dẫn tuyệt đối theo máy** (`C:Users...`) nên đã được liệt trong `.gitignore`, `.prettierignore` và `ignores` của eslint — không commit, không format, không lint file này.
 
 ---
 
