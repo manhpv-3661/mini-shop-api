@@ -32,6 +32,21 @@ export class NotificationsService {
   /** Nạp kèm `order` relation, khác `findById` — cần snapshot order để dựng nội dung mail. */
   async findByIdForSending(id: string): Promise<EmailNotification | null> {
     return this.notificationsRepository.findOne({
+      select: {
+        id: true,
+        status: true,
+        eventType: true,
+        recipientEmail: true,
+        locale: true,
+        payload: true,
+        secretCiphertext: true,
+        order: {
+          id: true,
+          recipientName: true,
+          totalVnd: true,
+          rejectionReason: true,
+        },
+      },
       where: { id },
       relations: { order: true },
     });

@@ -57,6 +57,21 @@ describe('NotificationsService', () => {
     await service.findByIdForSending('notif-1');
 
     expect(notificationsRepository.findOne).toHaveBeenCalledWith({
+      select: {
+        id: true,
+        status: true,
+        eventType: true,
+        recipientEmail: true,
+        locale: true,
+        payload: true,
+        secretCiphertext: true,
+        order: {
+          id: true,
+          recipientName: true,
+          totalVnd: true,
+          rejectionReason: true,
+        },
+      },
       where: { id: 'notif-1' },
       relations: { order: true },
     });

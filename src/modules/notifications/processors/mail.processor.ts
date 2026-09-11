@@ -48,12 +48,23 @@ export class MailProcessor {
     try {
       const content = this.mailContentBuilder.build(notification);
       await this.mailerService.sendMail(notification.recipientEmail, content);
+    } catch (error) {
+      await this.handleSendFailure(notificationId, error);
+      return;
+    }
+
+    // Mail đã gửi thành công tại đây — không được để lỗi từ bước này rơi vào
+    // handleSendFailure()/rethrow, vì Bull sẽ retry và gọi lại sendMail(), gửi trùng mail.
+    try {
       await this.notificationsService.markSent(notificationId);
       this.logger.log(
         `Sent ${notification.eventType} email for notification ${notificationId}`,
       );
     } catch (error) {
-      await this.handleSendFailure(notificationId, error);
+      this.logger.error(
+        `Mail sent for notification ${notificationId} but markSent() failed — DB state is stale, will NOT resend`,
+        error instanceof Error ? error.stack : String(error),
+      );
     }
   }
 

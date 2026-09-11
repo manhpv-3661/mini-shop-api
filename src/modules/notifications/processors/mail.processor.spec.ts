@@ -139,6 +139,19 @@ describe('MailProcessor', () => {
     expect(notificationsService.markFailed).not.toHaveBeenCalled();
   });
 
+  it('does not resend or rethrow when sendMail succeeds but markSent fails', async () => {
+    notificationsService.findByIdForSending.mockResolvedValue(
+      buildNotification({}),
+    );
+    notificationsService.reserveAttempt.mockResolvedValue(true);
+    notificationsService.markSent.mockRejectedValue(new Error('DB timeout'));
+
+    await expect(processor.handleSendMail(buildJob())).resolves.toBeUndefined();
+
+    expect(mailerService.sendMail).toHaveBeenCalledTimes(1);
+    expect(notificationsService.markFailed).not.toHaveBeenCalled();
+  });
+
   it('marks FAILED without rethrowing on the final failed attempt', async () => {
     notificationsService.findByIdForSending.mockResolvedValue(
       buildNotification({}),

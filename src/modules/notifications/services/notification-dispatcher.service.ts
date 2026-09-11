@@ -79,8 +79,10 @@ export class NotificationDispatcherService {
     if (IN_FLIGHT_JOB_STATES.has(state)) {
       return;
     }
-    // Job đã ở trạng thái terminal (completed/failed) nhưng outbox row vẫn PENDING: orphan do
-    // worker chết giữa chừng — dọn job cũ trước khi quyết định lại (database.md mục 8).
+    // Job đã terminal (completed/failed) nhưng outbox row vẫn PENDING: orphan do worker chết
+    // giữa chừng. `removeOnComplete`/`removeOnFail` đều xóa job ngay khi terminal nên nhánh này
+    // hiếm khi thấy job còn tồn tại — chỉ là phòng hờ khoảng hẹp trước khi Bull kịp xóa; `getJob()`
+    // trả `null` (job đã bị Bull tự xóa) rơi thẳng vào `enqueueOrFail()` bên dưới, cùng kết quả.
     await job.remove();
     await this.enqueueOrFail(notification);
   }
@@ -101,7 +103,7 @@ export class NotificationDispatcherService {
         attempts: MAX_EMAIL_NOTIFICATION_ATTEMPTS,
         backoff: { type: 'exponential', delay: MAIL_JOB_BACKOFF_DELAY_MS },
         removeOnComplete: true,
-        removeOnFail: false,
+        removeOnFail: true,
       },
     );
   }
