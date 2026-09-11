@@ -1,0 +1,34 @@
+{
+  "emailVerification": {
+    "subject": "Verify your Mini Shop account",
+    "greeting": "Hello {username},",
+    "instruction": "Please verify your email address to activate your account. This link can only be used once and will expire soon.",
+    "ctaLabel": "Verify email",
+    "footer": "If you did not create this account, you can safely ignore this email."
+  },
+  "passwordReset": {
+    "subject": "Reset your Mini Shop password",
+    "greeting": "Hello {username},",
+    "instruction": "We received a request to reset your password. This link can only be used once and will expire soon.",
+    "ctaLabel": "Reset password",
+    "footer": "If you did not request a password reset, you can safely ignore this email."
+  },
+  "orderPlaced": {
+    "subject": "Order {orderId} has been placed",
+    "greeting": "Hello {recipientName},",
+    "body": "Thank you for your order. We have received order {orderId} for a total of {totalVnd} VND and it is now pending confirmation.",
+    "footer": "You can check your order status anytime from your account."
+  },
+  "orderConfirmed": {
+    "subject": "Order {orderId} has been confirmed",
+    "greeting": "Hello {recipientName},",
+    "body": "Your order {orderId} has been confirmed and is being prepared for delivery.",
+    "footer": "You can check your order status anytime from your account."
+  },
+  "orderRejected": {
+    "subject": "Order {orderId} has been rejected",
+    "greeting": "Hello {recipientName},",
+    "body": "We are sorry, but your order {orderId} has been rejected for the following reason: {rejectionReason}",
+    "footer": "If you have any questions, please contact our support team."
+  }
+}

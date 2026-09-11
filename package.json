@@ -54,6 +54,7 @@
     "ioredis": "^5.11.1",
     "joi": "^18.2.5",
     "nestjs-i18n": "^10.8.5",
+    "nodemailer": "^10.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "pg": "^8.23.0",

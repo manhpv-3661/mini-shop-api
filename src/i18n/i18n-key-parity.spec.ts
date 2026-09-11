@@ -12,7 +12,7 @@ function flattenKeys(value: unknown, prefix = ''): string[] {
 }
 
 describe('i18n resources', () => {
-  it.each(['common.json', 'errors.json', 'validation.json'])(
+  it.each(['common.json', 'errors.json', 'validation.json', 'mail.json'])(
     'keeps English and Vietnamese keys aligned in %s',
     (file) => {
       const read = (language: string): unknown =>

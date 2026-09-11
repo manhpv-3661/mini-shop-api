@@ -1,0 +1,34 @@
+{
+  "emailVerification": {
+    "subject": "Xác thực tài khoản Mini Shop",
+    "greeting": "Chào {username},",
+    "instruction": "Vui lòng xác thực email để kích hoạt tài khoản. Link chỉ dùng được một lần và sẽ sớm hết hạn.",
+    "ctaLabel": "Xác thực email",
+    "footer": "Nếu bạn không tạo tài khoản này, vui lòng bỏ qua email này."
+  },
+  "passwordReset": {
+    "subject": "Đặt lại mật khẩu Mini Shop",
+    "greeting": "Chào {username},",
+    "instruction": "Chúng tôi nhận được yêu cầu đặt lại mật khẩu của bạn. Link chỉ dùng được một lần và sẽ sớm hết hạn.",
+    "ctaLabel": "Đặt lại mật khẩu",
+    "footer": "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này."
+  },
+  "orderPlaced": {
+    "subject": "Đơn hàng {orderId} đã được đặt",
+    "greeting": "Chào {recipientName},",
+    "body": "Cảm ơn bạn đã đặt hàng. Chúng tôi đã nhận đơn {orderId} với tổng giá trị {totalVnd} VND và đang chờ xác nhận.",
+    "footer": "Bạn có thể xem trạng thái đơn hàng bất kỳ lúc nào trong tài khoản của mình."
+  },
+  "orderConfirmed": {
+    "subject": "Đơn hàng {orderId} đã được xác nhận",
+    "greeting": "Chào {recipientName},",
+    "body": "Đơn hàng {orderId} của bạn đã được xác nhận và đang được chuẩn bị giao.",
+    "footer": "Bạn có thể xem trạng thái đơn hàng bất kỳ lúc nào trong tài khoản của mình."
+  },
+  "orderRejected": {
+    "subject": "Đơn hàng {orderId} đã bị từ chối",
+    "greeting": "Chào {recipientName},",
+    "body": "Rất tiếc, đơn hàng {orderId} của bạn đã bị từ chối với lý do: {rejectionReason}",
+    "footer": "Nếu có thắc mắc, vui lòng liên hệ đội ngũ hỗ trợ của chúng tôi."
+  }
+}
