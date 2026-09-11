@@ -30,12 +30,15 @@ export class AuthController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new customer account' })
   @ApiResponse({
-    status: 201,
+    status: HttpStatus.CREATED,
     description: 'Account created with PENDING status, no access token yet',
   })
-  @ApiResponse({ status: 400, description: 'Validation failed' })
   @ApiResponse({
-    status: 409,
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Validation failed',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
     description: 'Email or username already registered',
   })
   async register(@Body() dto: RegisterDto): Promise<UserResponseDto> {
