@@ -12,7 +12,7 @@ import { JwtPayload } from '../interfaces/jwt-payload.interface';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    config: ConfigService,
+    private readonly config: ConfigService,
     private readonly usersService: UsersService,
     private readonly redisService: RedisService,
     private readonly i18n: I18nService,

@@ -5,7 +5,11 @@ import { SALT_ROUNDS } from '../../src/modules/users/constants/users.constants';
 import { User } from '../../src/modules/users/entities/user.entity';
 import { UserStatus } from '../../src/modules/users/enums/user-status.enum';
 
-/** 2 user cố định — dùng chung cho e2e cần một tài khoản ACTIVE có sẵn (login, ownership...). */
+/**
+ * 2 user cố định — dùng chung cho e2e cần một tài khoản ACTIVE có sẵn (login, ownership...).
+ * `seed_bob` (ADMIN) chưa có test nào dùng ở PR06 — chuẩn bị sẵn cho PR08 (admin routes) cần một
+ * tài khoản ADMIN ACTIVE để test RBAC, tránh mỗi e2e admin phải tự tạo user ADMIN riêng.
+ */
 export const SEED_PASSWORD = 'Seed@12345';
 export const SEED_ALICE_EMAIL = 'seed_alice@example.test';
 export const SEED_BOB_EMAIL = 'seed_bob@example.test';
