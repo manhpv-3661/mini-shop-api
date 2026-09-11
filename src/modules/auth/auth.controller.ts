@@ -49,11 +49,11 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Activate an account with its email token' })
   @ApiResponse({
-    status: 400,
+    status: HttpStatus.BAD_REQUEST,
     description: 'Token invalid, expired, or already used',
   })
   @ApiResponse({
-    status: 409,
+    status: HttpStatus.CONFLICT,
     description: 'Account has been deactivated by an admin',
   })
   async verifyEmail(@Body() dto: VerifyEmailDto): Promise<void> {
@@ -64,7 +64,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({
-    status: 401,
+    status: HttpStatus.UNAUTHORIZED,
     description: 'Invalid credentials or account not ACTIVE',
   })
   async login(@Body() dto: LoginDto): Promise<UserResponseDto> {
@@ -76,7 +76,10 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Revoke the current access token' })
-  @ApiResponse({ status: 401, description: 'Missing or invalid token' })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Missing or invalid token',
+  })
   async logout(@CurrentUser() currentUser: AuthenticatedUser): Promise<void> {
     await this.authService.logout(currentUser);
   }
