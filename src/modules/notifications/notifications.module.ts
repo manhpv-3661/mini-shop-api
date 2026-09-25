@@ -10,9 +10,11 @@ import {
   MAIL_TRANSPORTER_PROVIDER,
 } from './constants/notifications.constants';
 import { EmailNotification } from './entities/email-notification.entity';
+import { MailTransport } from './interfaces/mail-transport.interface';
 import { MailProcessor } from './processors/mail.processor';
 import { MailContentBuilderService } from './services/mail-content-builder.service';
 import { MailerService } from './services/mailer.service';
+import { MailtrapApiMailTransport } from './services/mailtrap-api-mail-transport';
 import { MonthlyReportService } from './services/monthly-report.service';
 import { NotificationDispatcherService } from './services/notification-dispatcher.service';
 import { NotificationsService } from './services/notifications.service';
@@ -30,6 +32,7 @@ import { NotificationsService } from './services/notifications.service';
         redis: {
           host: config.getOrThrow<string>('REDIS_HOST'),
           port: config.getOrThrow<number>('REDIS_PORT'),
+          password: config.get<string>('REDIS_PASSWORD'),
         },
       }),
     }),
@@ -39,12 +42,26 @@ import { NotificationsService } from './services/notifications.service';
     {
       provide: MAIL_TRANSPORTER_PROVIDER,
       inject: [ConfigService],
-      useFactory: (config: ConfigService) =>
-        nodemailer.createTransport({
+      // Nhiều PaaS (Railway...) chặn outbound SMTP hoàn toàn — xác nhận thật lúc deploy PR19, mọi
+      // port 587/2525 đều bị drop dù credential đúng. Có MAIL_API_TOKEN thì dùng Mailtrap Sending
+      // API (HTTP, cổng 443) thay vì SMTP; không có thì giữ nguyên SMTP cho local/CI (Mailpit).
+      useFactory: (config: ConfigService): MailTransport => {
+        // .trim() phòng khoảng trắng/newline dính khi copy token qua nhiều bước UI.
+        const apiToken = config.get<string>('MAIL_API_TOKEN')?.trim();
+        if (apiToken) {
+          return new MailtrapApiMailTransport(apiToken);
+        }
+        const user = config.get<string>('MAIL_USER');
+        const password = config.get<string>('MAIL_PASSWORD');
+        return nodemailer.createTransport({
           host: config.getOrThrow<string>('MAIL_HOST'),
           port: config.getOrThrow<number>('MAIL_PORT'),
-          secure: false,
-        }),
+          secure: config.getOrThrow<boolean>('MAIL_SECURE'),
+          // Mailpit (local/CI) không cần auth — chỉ set khi SMTP thật có MAIL_USER/MAIL_PASSWORD
+          // (validation ở env.validation.ts đã bắt buộc cả hai cùng có hoặc cùng không).
+          ...(user && password ? { auth: { user, pass: password } } : {}),
+        });
+      },
     },
     NotificationsService,
     NotificationDispatcherService,
